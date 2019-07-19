@@ -3,7 +3,7 @@ import { login } from './login';
 import { register } from './register';
 import { requestPasswordReset } from './requestPasswordReset';
 import { resetPassword } from './resetPassword';
-import { isAuthenticated } from '../../middleware/auth/isAuthenticated';
+import { isAuthenticated, hasGlobalPerm } from '../../middleware/auth/rules';
 
 export const Query = {
     me

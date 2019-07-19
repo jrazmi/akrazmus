@@ -151,9 +151,15 @@ const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
 
   const loaders = {
     user: {
-      id: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["Loader"])('users', 'id'),
-      email: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["Loader"])('users', 'email')
+      id: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])('users', 'id'),
+      email: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])('users', 'email')
+    },
+    permissions: {
+      global: {
+        userId: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["ManyLoader"])('global_permissions', 'user_id')
+      }
     } // load currentuser into context
+    // do we want to actually load user or no?
 
   };
 
@@ -161,7 +167,6 @@ const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
     currentUser = await loaders.user.id.load(req.user.id);
   }
 
-  console.log(req.user);
   return {
     req,
     res,
@@ -206,7 +211,7 @@ const server = new graphql_yoga__WEBPACK_IMPORTED_MODULE_0__["GraphQLServer"]({
     request,
     response
   }) => Object(_context__WEBPACK_IMPORTED_MODULE_4__["default"])(request, response),
-  middlewares: [_middleware_auth__WEBPACK_IMPORTED_MODULE_5__["default"]]
+  middlewares: [_middleware_auth__WEBPACK_IMPORTED_MODULE_5__["AuthMiddleware"]]
 });
 server.express.use(express_jwt__WEBPACK_IMPORTED_MODULE_1___default()({
   secret: process.env.TOKEN_SECRET,
@@ -248,22 +253,30 @@ server.start(options, ({
 /*!******************************!*\
   !*** ./src/loaders/index.js ***!
   \******************************/
-/*! exports provided: Loader */
+/*! exports provided: SingleLoader, ManyLoader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Loader", function() { return Loader; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SingleLoader", function() { return SingleLoader; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ManyLoader", function() { return ManyLoader; });
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dataloader */ "dataloader");
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dataloader__WEBPACK_IMPORTED_MODULE_0__);
 
 
 const db = __webpack_require__(/*! ../../db/knex.js */ "./db/knex.js");
 
-const Loader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
+const SingleLoader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
   return db.table(table).whereIn(key, keys).select().then(rows => {
     return keys.map(ikey => {
       return rows.find(x => x[key] === ikey);
+    });
+  });
+});
+const ManyLoader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
+  return db.table(table).whereIn(key, keys).select().then(rows => {
+    return keys.map(ikey => {
+      return rows.filter(x => x[key] === ikey);
     });
   });
 });
@@ -274,11 +287,12 @@ const Loader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___defau
 /*!**************************************!*\
   !*** ./src/middleware/auth/index.js ***!
   \**************************************/
-/*! exports provided: default */
+/*! exports provided: AuthMiddleware */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthMiddleware", function() { return AuthMiddleware; });
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! graphql-shield */ "graphql-shield");
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(graphql_shield__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _models_account__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../models/account */ "./src/models/account/index.js");
@@ -290,21 +304,70 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["shield"])({
+const AuthMiddleware = Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["shield"])({
   Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_1__["ShieldQuery"]),
   Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_1__["ShieldMutation"])
 }, {
-  fallbackError: "Not Autorized",
+  fallbackError: "Not Authorized",
   debug: "development" !== "production",
   allowExternalErrors: true
-}));
+});
 
 /***/ }),
 
-/***/ "./src/middleware/auth/isAuthenticated.js":
-/*!************************************************!*\
-  !*** ./src/middleware/auth/isAuthenticated.js ***!
-  \************************************************/
+/***/ "./src/middleware/auth/rules/hasGlobalPerm.js":
+/*!****************************************************!*\
+  !*** ./src/middleware/auth/rules/hasGlobalPerm.js ***!
+  \****************************************************/
+/*! exports provided: hasGlobalPerm */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasGlobalPerm", function() { return hasGlobalPerm; });
+/* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! graphql-shield */ "graphql-shield");
+/* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(graphql_shield__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "lodash");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const hasGlobalPerm = perm => Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["rule"])({
+  cache: "contextual"
+})(async (root, args, ctx, info) => {
+  if (!ctx.currentUser) return false;
+  if (ctx.currentUser.deleted) return false;
+  const perms = await ctx.loaders.permissions.global.userId.load(ctx.currentUser.id); // iterate over permissions map permission values to an array
+  // return true/false if permission exists
+
+  return lodash__WEBPACK_IMPORTED_MODULE_1___default.a.includes(lodash__WEBPACK_IMPORTED_MODULE_1___default.a.map(perms, 'permission'), perm);
+});
+
+/***/ }),
+
+/***/ "./src/middleware/auth/rules/index.js":
+/*!********************************************!*\
+  !*** ./src/middleware/auth/rules/index.js ***!
+  \********************************************/
+/*! exports provided: isAuthenticated, hasGlobalPerm */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _isAuthenticated__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./isAuthenticated */ "./src/middleware/auth/rules/isAuthenticated.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isAuthenticated", function() { return _isAuthenticated__WEBPACK_IMPORTED_MODULE_0__["isAuthenticated"]; });
+
+/* harmony import */ var _hasGlobalPerm__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./hasGlobalPerm */ "./src/middleware/auth/rules/hasGlobalPerm.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hasGlobalPerm", function() { return _hasGlobalPerm__WEBPACK_IMPORTED_MODULE_1__["hasGlobalPerm"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./src/middleware/auth/rules/isAuthenticated.js":
+/*!******************************************************!*\
+  !*** ./src/middleware/auth/rules/isAuthenticated.js ***!
+  \******************************************************/
 /*! exports provided: isAuthenticated */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -342,7 +405,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./register */ "./src/models/account/register.js");
 /* harmony import */ var _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./requestPasswordReset */ "./src/models/account/requestPasswordReset.js");
 /* harmony import */ var _resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resetPassword */ "./src/models/account/resetPassword.js");
-/* harmony import */ var _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../middleware/auth/isAuthenticated */ "./src/middleware/auth/isAuthenticated.js");
+/* harmony import */ var _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../middleware/auth/rules */ "./src/middleware/auth/rules/index.js");
 
 
 
@@ -353,7 +416,7 @@ const Query = {
   me: _me__WEBPACK_IMPORTED_MODULE_0__["me"]
 };
 const ShieldQuery = {
-  me: _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
+  me: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
 };
 const Mutation = {
   login: _login__WEBPACK_IMPORTED_MODULE_1__["login"],
@@ -362,7 +425,7 @@ const Mutation = {
   resetPassword: _resetPassword__WEBPACK_IMPORTED_MODULE_4__["resetPassword"]
 };
 const ShieldMutation = {
-  login: _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
+  login: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
 };
 
 /***/ }),
@@ -884,6 +947,17 @@ module.exports = require("jsonwebtoken");
 /***/ (function(module, exports) {
 
 module.exports = require("knex");
+
+/***/ }),
+
+/***/ "lodash":
+/*!*************************!*\
+  !*** external "lodash" ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("lodash");
 
 /***/ }),
 

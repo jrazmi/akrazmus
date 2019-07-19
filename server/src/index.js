@@ -3,7 +3,7 @@ import jwt from 'express-jwt';
 import resolvers from "./resolvers";
 import typeDefs from "./types";
 import context from './context';
-import AuthMiddleware from './middleware/auth';
+import { AuthMiddleware } from './middleware/auth';
 
 require("dotenv").config();
 
