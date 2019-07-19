@@ -3,10 +3,10 @@ import { ses } from '../../util/aws';
 import { EmailRPR } from '../../util/templates/EmailRPR';
 import jsonwebtoken from 'jsonwebtoken';
 
-export const requestPasswordReset = async ( root, args, context, info ) => {
+export const requestPasswordReset = async ( root, args, ctx, info ) => {
     // Load user from formatted email
     const formattedEmail = FormatEmail(args.email);
-    const user = await context.loaders.user.email.load(formattedEmail);
+    const user = await ctx.loaders.user.email.load(formattedEmail);
 
     //set Generic Invalid Credential error
     const credAuthError = { code: "DOES_NOT_EXIST", success: false, message: "Could not find matching user with these credentials"};

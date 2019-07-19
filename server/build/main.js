@@ -146,17 +146,26 @@ __webpack_require__.r(__webpack_exports__);
 const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
 
 
-/* harmony default export */ __webpack_exports__["default"] = ((req, res) => {
+/* harmony default export */ __webpack_exports__["default"] = (async (req, res) => {
+  let currentUser; // initialize dataloaders to context
+
   const loaders = {
     user: {
       id: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["Loader"])('users', 'id'),
       email: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["Loader"])('users', 'email')
-    }
+    } // load currentuser into context
+
   };
+
+  if (req && req.user) {
+    currentUser = await loaders.user.id.load(req.user.id);
+  }
+
+  console.log(req.user);
   return {
     req,
     res,
-    user: req.user,
+    currentUser: currentUser,
     db,
     loaders: loaders
   };
@@ -175,42 +184,31 @@ const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var graphql_yoga__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! graphql-yoga */ "graphql-yoga");
 /* harmony import */ var graphql_yoga__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(graphql_yoga__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _resolvers__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./resolvers */ "./src/resolvers/index.js");
-/* harmony import */ var _typeDefs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./typeDefs */ "./src/typeDefs/index.js");
-/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./context */ "./src/context.js");
-/* harmony import */ var _permissions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./permissions */ "./src/permissions/index.js");
-const connect = __webpack_require__(/*! connect */ "connect");
+/* harmony import */ var express_jwt__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! express-jwt */ "express-jwt");
+/* harmony import */ var express_jwt__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(express_jwt__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _resolvers__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./resolvers */ "./src/resolvers/index.js");
+/* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./types */ "./src/types/index.js");
+/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./context */ "./src/context.js");
+/* harmony import */ var _middleware_auth__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./middleware/auth */ "./src/middleware/auth/index.js");
 
-const {
-  ApolloServer
-} = __webpack_require__(/*! apollo-server-express */ "apollo-server-express");
 
-const query = __webpack_require__(/*! qs-middleware */ "qs-middleware");
 
-const jwt = __webpack_require__(/*! express-jwt */ "express-jwt");
+
 
 
 
 __webpack_require__(/*! dotenv */ "dotenv").config();
 
-
-
-
-
-const server = new ApolloServer({
-  typeDefs: _typeDefs__WEBPACK_IMPORTED_MODULE_2__["default"],
-  resolvers: _resolvers__WEBPACK_IMPORTED_MODULE_1__["default"],
+const server = new graphql_yoga__WEBPACK_IMPORTED_MODULE_0__["GraphQLServer"]({
+  typeDefs: _types__WEBPACK_IMPORTED_MODULE_3__["default"],
+  resolvers: _resolvers__WEBPACK_IMPORTED_MODULE_2__["default"],
   context: ({
-    req,
-    res
-  }) => Object(_context__WEBPACK_IMPORTED_MODULE_3__["default"])(req, res)
+    request,
+    response
+  }) => Object(_context__WEBPACK_IMPORTED_MODULE_4__["default"])(request, response),
+  middlewares: [_middleware_auth__WEBPACK_IMPORTED_MODULE_5__["default"]]
 });
-const PORT = process.env.PORT || 4000;
-const app = connect();
-const path = '/graphql';
-app.use(query()); // jwt middlewhere
-
-app.use(jwt({
+server.express.use(express_jwt__WEBPACK_IMPORTED_MODULE_1___default()({
   secret: process.env.TOKEN_SECRET,
   credentialsRequired: false,
   //allow for auth header or token query param
@@ -224,13 +222,25 @@ app.use(jwt({
     return null;
   }
 }));
-server.applyMiddleware({
-  app,
-  path
+const options = {
+  endpoint: "/graphql",
+  subscriptions: "/subscriptions",
+  playground: "/playground",
+  cors: {
+    credentials: true,
+    origin:  false ? undefined : process.env.FRONTEND_HOST
+  },
+  formatError: err => {
+    return {
+      message: err.message
+    };
+  }
+};
+server.start(options, ({
+  port
+}) => {
+  console.log(`Server started, listening on port ${port} for incoming requests.`);
 });
-app.listen({
-  port: PORT
-}, () => console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`));
 
 /***/ }),
 
@@ -260,10 +270,10 @@ const Loader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___defau
 
 /***/ }),
 
-/***/ "./src/permissions/index.js":
-/*!**********************************!*\
-  !*** ./src/permissions/index.js ***!
-  \**********************************/
+/***/ "./src/middleware/auth/index.js":
+/*!**************************************!*\
+  !*** ./src/middleware/auth/index.js ***!
+  \**************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -271,21 +281,30 @@ const Loader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___defau
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! graphql-shield */ "graphql-shield");
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(graphql_shield__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _isAuthenticated__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./isAuthenticated */ "./src/permissions/isAuthenticated.js");
+/* harmony import */ var _models_account__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../models/account */ "./src/models/account/index.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { keys.push.apply(keys, Object.getOwnPropertySymbols(object)); } if (enumerableOnly) keys = keys.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = (Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["shield"])({
-  Query: {
-    user: _isAuthenticated__WEBPACK_IMPORTED_MODULE_1__["isAuthenticated"]
-  }
+  Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_1__["ShieldQuery"]),
+  Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_1__["ShieldMutation"])
+}, {
+  fallbackError: "Not Autorized",
+  debug: "development" !== "production",
+  allowExternalErrors: true
 }));
 
 /***/ }),
 
-/***/ "./src/permissions/isAuthenticated.js":
-/*!********************************************!*\
-  !*** ./src/permissions/isAuthenticated.js ***!
-  \********************************************/
+/***/ "./src/middleware/auth/isAuthenticated.js":
+/*!************************************************!*\
+  !*** ./src/middleware/auth/isAuthenticated.js ***!
+  \************************************************/
 /*! exports provided: isAuthenticated */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -295,53 +314,62 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! graphql-shield */ "graphql-shield");
 /* harmony import */ var graphql_shield__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(graphql_shield__WEBPACK_IMPORTED_MODULE_0__);
 
-const isAuthenticated = Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["rule"])(`is-authenticated`, {
+const isAuthenticated = Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["rule"])({
   cache: "contextual"
-})(async (parent, args, context, info) => {
-  console.log('Auth Middlewhere');
-  if (!context.user) return false;
-  if (!context.user.id) return false;
+})(async (root, args, ctx, info) => {
+  if (!ctx.currentUser) return false;
+  if (ctx.currentUser.deleted) return false;
   return true;
 });
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/index.js":
+/***/ "./src/models/account/index.js":
 /*!*************************************!*\
-  !*** ./src/resolvers/auth/index.js ***!
+  !*** ./src/models/account/index.js ***!
   \*************************************/
-/*! exports provided: Queries, Mutations */
+/*! exports provided: Query, ShieldQuery, Mutation, ShieldMutation */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Queries", function() { return Queries; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Mutations", function() { return Mutations; });
-/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./me */ "./src/resolvers/auth/me.js");
-/* harmony import */ var _login__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./login */ "./src/resolvers/auth/login.js");
-/* harmony import */ var _register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./register */ "./src/resolvers/auth/register.js");
-/* harmony import */ var _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./requestPasswordReset */ "./src/resolvers/auth/requestPasswordReset.js");
-/* harmony import */ var _resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resetPassword */ "./src/resolvers/auth/resetPassword.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Query", function() { return Query; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShieldQuery", function() { return ShieldQuery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Mutation", function() { return Mutation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShieldMutation", function() { return ShieldMutation; });
+/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./me */ "./src/models/account/me.js");
+/* harmony import */ var _login__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./login */ "./src/models/account/login.js");
+/* harmony import */ var _register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./register */ "./src/models/account/register.js");
+/* harmony import */ var _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./requestPasswordReset */ "./src/models/account/requestPasswordReset.js");
+/* harmony import */ var _resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resetPassword */ "./src/models/account/resetPassword.js");
+/* harmony import */ var _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../middleware/auth/isAuthenticated */ "./src/middleware/auth/isAuthenticated.js");
 
 
 
 
 
-const Queries = {
+
+const Query = {
   me: _me__WEBPACK_IMPORTED_MODULE_0__["me"]
 };
-const Mutations = {
+const ShieldQuery = {
+  me: _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
+};
+const Mutation = {
   login: _login__WEBPACK_IMPORTED_MODULE_1__["login"],
   register: _register__WEBPACK_IMPORTED_MODULE_2__["register"],
   requestPasswordReset: _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__["requestPasswordReset"],
   resetPassword: _resetPassword__WEBPACK_IMPORTED_MODULE_4__["resetPassword"]
 };
+const ShieldMutation = {
+  login: _middleware_auth_isAuthenticated__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
+};
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/login.js":
+/***/ "./src/models/account/login.js":
 /*!*************************************!*\
-  !*** ./src/resolvers/auth/login.js ***!
+  !*** ./src/models/account/login.js ***!
   \*************************************/
 /*! exports provided: login */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -357,9 +385,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const login = async (root, args, context, info) => {
+const login = async (root, args, ctx, info) => {
   // Load user from formatted email
-  const user = await context.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_2__["FormatEmail"])(args.email)); //set Generic Invalid Credential error
+  const user = await ctx.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_2__["FormatEmail"])(args.email)); //set Generic Invalid Credential error
 
   const credAuthError = {
     code: "DOES_NOT_EXIST",
@@ -404,9 +432,9 @@ const login = async (root, args, context, info) => {
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/me.js":
+/***/ "./src/models/account/me.js":
 /*!**********************************!*\
-  !*** ./src/resolvers/auth/me.js ***!
+  !*** ./src/models/account/me.js ***!
   \**********************************/
 /*! exports provided: me */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -414,19 +442,15 @@ const login = async (root, args, context, info) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "me", function() { return me; });
-const me = async (root, args, context, info) => {
-  if (context.user && context.user.id) {
-    return await context.loaders.user.id.load(context.user.id);
-  }
-
-  return null;
+const me = async (root, args, ctx, info) => {
+  return ctx.currentUser;
 };
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/register.js":
+/***/ "./src/models/account/register.js":
 /*!****************************************!*\
-  !*** ./src/resolvers/auth/register.js ***!
+  !*** ./src/models/account/register.js ***!
   \****************************************/
 /*! exports provided: register */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -439,10 +463,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_1__);
 
 
-const register = async (root, args, context, info) => {
+const register = async (root, args, ctx, info) => {
   // Load user from formatted email
   const formattedEmail = Object(_util__WEBPACK_IMPORTED_MODULE_0__["FormatEmail"])(args.input.email);
-  const existing = await context.loaders.user.email.load(formattedEmail);
+  const existing = await ctx.loaders.user.email.load(formattedEmail);
 
   if (existing) {
     return {
@@ -457,7 +481,7 @@ const register = async (root, args, context, info) => {
     password: await bcryptjs__WEBPACK_IMPORTED_MODULE_1___default.a.hash(args.input.password, 10),
     email: formattedEmail
   });
-  const user = await context.db('users').insert(userData).return('*');
+  const user = await ctx.db('users').insert(userData).return('*');
   return {
     code: "OK",
     success: true,
@@ -468,9 +492,9 @@ const register = async (root, args, context, info) => {
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/requestPasswordReset.js":
+/***/ "./src/models/account/requestPasswordReset.js":
 /*!****************************************************!*\
-  !*** ./src/resolvers/auth/requestPasswordReset.js ***!
+  !*** ./src/models/account/requestPasswordReset.js ***!
   \****************************************************/
 /*! exports provided: requestPasswordReset */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -487,10 +511,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const requestPasswordReset = async (root, args, context, info) => {
+const requestPasswordReset = async (root, args, ctx, info) => {
   // Load user from formatted email
   const formattedEmail = Object(_util__WEBPACK_IMPORTED_MODULE_0__["FormatEmail"])(args.email);
-  const user = await context.loaders.user.email.load(formattedEmail); //set Generic Invalid Credential error
+  const user = await ctx.loaders.user.email.load(formattedEmail); //set Generic Invalid Credential error
 
   const credAuthError = {
     code: "DOES_NOT_EXIST",
@@ -545,9 +569,9 @@ const requestPasswordReset = async (root, args, context, info) => {
 
 /***/ }),
 
-/***/ "./src/resolvers/auth/resetPassword.js":
+/***/ "./src/models/account/resetPassword.js":
 /*!*********************************************!*\
-  !*** ./src/resolvers/auth/resetPassword.js ***!
+  !*** ./src/models/account/resetPassword.js ***!
   \*********************************************/
 /*! exports provided: resetPassword */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -563,7 +587,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const resetPassword = async (root, args, context, info) => {
+const resetPassword = async (root, args, ctx, info) => {
   let validJWT; //verify that a valid jwt was passed in
 
   try {
@@ -577,7 +601,7 @@ const resetPassword = async (root, args, context, info) => {
   } // get user from jwt args
 
 
-  const user = await context.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_1__["FormatEmail"])(validJWT.email)); //set Generic Invalid Credential error
+  const user = await ctx.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_1__["FormatEmail"])(validJWT.email)); //set Generic Invalid Credential error
 
   const credAuthError = {
     code: "DOES_NOT_EXIST",
@@ -592,7 +616,7 @@ const resetPassword = async (root, args, context, info) => {
 
   const updatedPassword = await bcryptjs__WEBPACK_IMPORTED_MODULE_2___default.a.hash(args.password, 10); //update new password
 
-  const updatedUser = await context.db('users').where('id', user.id).update({
+  const updatedUser = await ctx.db('users').where('id', user.id).update({
     password: updatedPassword
   }).returning('*');
   return {
@@ -613,9 +637,7 @@ const resetPassword = async (root, args, context, info) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _auth__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./auth */ "./src/resolvers/auth/index.js");
-/* harmony import */ var _users__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./users */ "./src/resolvers/users/index.js");
-/* harmony import */ var _permissions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./permissions */ "./src/resolvers/permissions/index.js");
+/* harmony import */ var _models_account__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../models/account */ "./src/models/account/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { keys.push.apply(keys, Object.getOwnPropertySymbols(object)); } if (enumerableOnly) keys = keys.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -623,64 +645,17 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
-
-
 /* harmony default export */ __webpack_exports__["default"] = ({
-  Query: _objectSpread({}, _auth__WEBPACK_IMPORTED_MODULE_0__["Queries"], {}, _users__WEBPACK_IMPORTED_MODULE_1__["Queries"], {}, _permissions__WEBPACK_IMPORTED_MODULE_2__["Queries"]),
-  Mutation: _objectSpread({}, _auth__WEBPACK_IMPORTED_MODULE_0__["Mutations"])
+  Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Query"]),
+  Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Mutation"])
 });
 
 /***/ }),
 
-/***/ "./src/resolvers/permissions/index.js":
-/*!********************************************!*\
-  !*** ./src/resolvers/permissions/index.js ***!
-  \********************************************/
-/*! exports provided: Queries */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Queries", function() { return Queries; });
-let permission = {};
-let permissions = [{}, {}];
-const Queries = {
-  permission,
-  permissions
-};
-
-/***/ }),
-
-/***/ "./src/resolvers/users/index.js":
-/*!**************************************!*\
-  !*** ./src/resolvers/users/index.js ***!
-  \**************************************/
-/*! exports provided: user, Queries */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "user", function() { return user; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Queries", function() { return Queries; });
-let users = [{}, {}];
-const user = async (root, args, context, info) => {
-  if (args.id) {
-    return await context.loaders.user.id.load(args.id);
-  } else if (args.email) {
-    return await context.loaders.user.email.load(args.email.toUpperCase());
-  } else return null;
-};
-const Queries = {
-  user,
-  users
-};
-
-/***/ }),
-
-/***/ "./src/typeDefs/index.js":
-/*!*******************************!*\
-  !*** ./src/typeDefs/index.js ***!
-  \*******************************/
+/***/ "./src/types/index.js":
+/*!****************************!*\
+  !*** ./src/types/index.js ***!
+  \****************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -692,10 +667,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__);
 
 
-const typesArray = Object(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__["fileLoader"])(path__WEBPACK_IMPORTED_MODULE_0__["join"](__dirname, "./"));
+const typesArray = Object(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__["fileLoader"])(path__WEBPACK_IMPORTED_MODULE_0__["join"](__dirname, "../**/*.graphql"));
 const typesMerged = Object(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__["mergeTypes"])(typesArray);
 /* harmony default export */ __webpack_exports__["default"] = (typesMerged);
-/* WEBPACK VAR INJECTION */}.call(this, "src/typeDefs"))
+/* WEBPACK VAR INJECTION */}.call(this, "src/types"))
 
 /***/ }),
 
@@ -813,17 +788,6 @@ module.exports = __webpack_require__(/*! /Users/elwyn/gps/labs/akrazmus/server/s
 
 /***/ }),
 
-/***/ "apollo-server-express":
-/*!****************************************!*\
-  !*** external "apollo-server-express" ***!
-  \****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("apollo-server-express");
-
-/***/ }),
-
 /***/ "aws-sdk":
 /*!**************************!*\
   !*** external "aws-sdk" ***!
@@ -843,17 +807,6 @@ module.exports = require("aws-sdk");
 /***/ (function(module, exports) {
 
 module.exports = require("bcryptjs");
-
-/***/ }),
-
-/***/ "connect":
-/*!**************************!*\
-  !*** external "connect" ***!
-  \**************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("connect");
 
 /***/ }),
 
@@ -953,17 +906,6 @@ module.exports = require("merge-graphql-schemas");
 /***/ (function(module, exports) {
 
 module.exports = require("path");
-
-/***/ }),
-
-/***/ "qs-middleware":
-/*!********************************!*\
-  !*** external "qs-middleware" ***!
-  \********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("qs-middleware");
 
 /***/ })
 

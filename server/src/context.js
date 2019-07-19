@@ -1,16 +1,26 @@
 const db = require('../db/knex.js');
-import { userLoaderById, Loader } from './loaders';
-export default (req, res) => {
+import { Loader } from './loaders';
+
+export default async (req, res) => {
+    let currentUser;
+    // initialize dataloaders to context
     const loaders = {
         user: {
             id: Loader('users', 'id'),
             email: Loader('users', 'email')
         }
     }
+
+    // load currentuser into context
+    if(req && req.user) {
+        currentUser = await loaders.user.id.load(req.user.id);
+    }
+
+    console.log(req.user)
     return {
         req,
         res,
-        user: req.user,
+        currentUser: currentUser,
         db,
         loaders: loaders,
     }

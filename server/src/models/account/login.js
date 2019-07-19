@@ -2,9 +2,9 @@ import jsonwebtoken from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { FormatEmail } from '../../util';
 
-export const login = async(root,args,context,info) => {
+export const login = async(root,args,ctx,info) => {
     // Load user from formatted email
-    const user = await context.loaders.user.email.load(FormatEmail(args.email));
+    const user = await ctx.loaders.user.email.load(FormatEmail(args.email));
 
     //set Generic Invalid Credential error
     const credAuthError = { code: "DOES_NOT_EXIST", success: false, message: "Could not find matching user with these credentials"};

@@ -1,8 +1,0 @@
-type Query {
-    hello: String!
-    me: User
-    user(id: Int, email: String): User!
-    users: UsersResults!
-    permission: Permission!
-    permissions: PermissionsResults!
-}

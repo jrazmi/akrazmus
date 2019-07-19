@@ -2,7 +2,7 @@ import jsonwebtoken from 'jsonwebtoken';
 import { FormatEmail } from '../../util';
 import bcrypt from 'bcryptjs';
 
-export const resetPassword = async ( root, args, context, info ) => {
+export const resetPassword = async ( root, args, ctx, info ) => {
     let validJWT;
     //verify that a valid jwt was passed in
     try {
@@ -16,7 +16,7 @@ export const resetPassword = async ( root, args, context, info ) => {
     }
 
     // get user from jwt args
-    const user = await context.loaders.user.email.load(FormatEmail(validJWT.email));
+    const user = await ctx.loaders.user.email.load(FormatEmail(validJWT.email));
     
     //set Generic Invalid Credential error
     const credAuthError = { code: "DOES_NOT_EXIST", success: false, message: "Could not find matching user with these credentials"};
@@ -30,7 +30,7 @@ export const resetPassword = async ( root, args, context, info ) => {
     const updatedPassword = await bcrypt.hash(args.password, 10);
 
     //update new password
-    const updatedUser = await context.db('users').where('id', user.id).update({password: updatedPassword}).returning('*');
+    const updatedUser = await ctx.db('users').where('id', user.id).update({password: updatedPassword}).returning('*');
 
     return{
         code: "OK",

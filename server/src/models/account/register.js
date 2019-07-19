@@ -1,10 +1,10 @@
 import { FormatEmail } from '../../util';
 import bcrypt from 'bcryptjs';
 
-export const register = async(root,args,context,info) => {
+export const register = async(root,args,ctx,info) => {
     // Load user from formatted email
     const formattedEmail = FormatEmail(args.input.email);
-    const existing = await context.loaders.user.email.load(formattedEmail);
+    const existing = await ctx.loaders.user.email.load(formattedEmail);
     if(existing){
         return(
             {
@@ -21,7 +21,7 @@ export const register = async(root,args,context,info) => {
         email: formattedEmail,
     });
 
-    const user = await context.db('users').insert(userData).return('*');
+    const user = await ctx.db('users').insert(userData).return('*');
 
     return(
         {

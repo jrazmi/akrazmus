@@ -1,3 +1,14 @@
+type Query {
+    me: User
+}
+
+type Mutation {
+    login(email: String!, password: String!): RequestLoginResult!
+    register(input: RegisterInput!): RegisterResult!
+    requestPasswordReset(email: String!, link: String!): BasicMutationResponse!
+    resetPassword(token: String!, password: String!): BasicMutationResponse!
+}
+
 type RequestLoginResult {
     code: MutationCodeEnum!
     success: Boolean!

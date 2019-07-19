@@ -1,34 +1,22 @@
-const connect = require('connect');
-const { ApolloServer } = require('apollo-server-express');
-const query = require('qs-middleware');
-const jwt = require('express-jwt');
 import { GraphQLServer } from "graphql-yoga";
+import jwt from 'express-jwt';
+import resolvers from "./resolvers";
+import typeDefs from "./types";
+import context from './context';
+import AuthMiddleware from './middleware/auth';
 
 require("dotenv").config();
 
+const server = new GraphQLServer({
+    typeDefs,
+    resolvers,
+    context: ({request, response}) => context(request,response),
+    middlewares:[
+      AuthMiddleware
+    ]
+});
 
-import resolvers from "./resolvers";
-import typeDefs from "./typeDefs";
-import context from './context';
-import Permissions from './permissions';
-
-const server = new ApolloServer(
-    { 
-        typeDefs, 
-        resolvers,
-        context: ({req, res}) => context(req,res),
-    }
-    );
-    
-const PORT = process.env.PORT || 4000;
-const app = connect();
-const path = '/graphql';
-
-
-app.use(query());
-
-// jwt middlewhere
-app.use(jwt({
+server.express.use(jwt({
     secret: process.env.TOKEN_SECRET,
     credentialsRequired: false,
     //allow for auth header or token query param
@@ -42,9 +30,19 @@ app.use(jwt({
     }
   }));
 
+const options = {
+  endpoint: "/graphql",
+  subscriptions: "/subscriptions",
+  playground: "/playground",
+  cors: {
+    credentials: true,
+    origin: process.env.NODE_ENV === 'test' ? '*' : process.env.FRONTEND_HOST
+  },
+  formatError: err => {
+    return {message: err.message}
+  }
+}
 
-server.applyMiddleware({ app, path });
-
-app.listen({ port: PORT }, () =>
-    console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
-);
+server.start(options, ({port}) => {
+  console.log(`Server started, listening on port ${port} for incoming requests.`);
+});

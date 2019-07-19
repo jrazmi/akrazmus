@@ -1,17 +1,11 @@
-import { Queries as AuthQueries, Mutations as AuthMutations } from './auth';
-import { Queries as UserQueries} from './users';
-import { Queries as PermissionQueries } from './permissions';
-
-
+import { Query as AccountQuery, Mutation as AccountMutation } from '../models/account';
 
 
 export default {
-    Query: {
-        ...AuthQueries,
-        ...UserQueries,
-        ...PermissionQueries
+    Query:{
+        ...AccountQuery
     },
     Mutation: {
-        ...AuthMutations
+        ...AccountMutation
     }
 }
