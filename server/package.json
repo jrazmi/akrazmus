@@ -7,7 +7,8 @@
     "dev": "yarn migrate-up && backpack",
     "dev-down": "yarn migrate-down && yarn migrate-up && backpack",
     "build": "rimraf build/ && backpack build",
-    "test": "NODE_ENV=test LOG_LEVEL=critical yarn migrate-down && NODE_ENV=test LOG_LEVEL=critical yarn migrate-up --env test && LOG_LEVEL=critical jest --detectOpenHandles --runInBand --forceExit",
+    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "test_watch": "NODE_ENV=test jest --watch",
     "migrate-down": "knex-migrate down --to 0",
     "migrate-up": "knex-migrate up",
     "start": "node ./build/main.js"
@@ -16,7 +17,6 @@
     "apollo-server": "^2.6.9",
     "apollo-server-express": "^2.7.0",
     "aws-sdk": "^2.495.0",
-    "backpack-core": "^0.8.4",
     "bcryptjs": "^2.4.3",
     "connect": "^3.7.0",
     "dataloader": "^1.4.0",
@@ -35,8 +35,11 @@
     "qs-middleware": "^1.0.3"
   },
   "devDependencies": {
+    "backpack-core": "^0.8.4",
     "eslint": "^6.0.1",
     "eslint-plugin-jest": "^22.7.2",
+    "faker": "^4.1.0",
+    "jest": "^24.8.0",
     "rimraf": "^2.6.3",
     "webpack-node-externals": "^1.7.2"
   }
