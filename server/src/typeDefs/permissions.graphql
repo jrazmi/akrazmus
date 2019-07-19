@@ -1,0 +1,9 @@
+type Permission {
+    id: ID!
+}
+
+type PermissionsResults {
+    hasMore: Boolean!
+    totalCount: Int!
+    items: [Permission]!
+}

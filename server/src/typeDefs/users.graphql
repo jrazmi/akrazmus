@@ -1,0 +1,14 @@
+type User {
+    id: ID!
+    email: String!
+    first_name: String
+    last_name: String
+    deleted: Boolean
+    createdAt: GraphQLDateTime
+    updatedAt: GraphQLDateTime
+}
+type UsersResults {
+    hasMore: Boolean!
+    totalCount: Int!
+    items: [User]!
+}

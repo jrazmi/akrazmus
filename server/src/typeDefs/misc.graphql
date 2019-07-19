@@ -1,0 +1,24 @@
+enum SortDirection {
+  ASC
+  DESC
+}
+
+scalar GraphQLDateTime
+scalar GraphQLDate
+scalar GraphQLTime
+
+enum MutationCodeEnum {
+  DUPLICATE
+  DOES_NOT_EXIST
+  INPUT_ERROR
+  UNKNOWN_ERROR
+  OK
+  EXPIRED
+  REVOKED
+}
+
+type BasicMutationResponse {
+    code: MutationCodeEnum!
+    success: Boolean!
+    message: String!
+}

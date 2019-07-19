@@ -1,0 +1,22 @@
+type RequestLoginResult {
+    code: MutationCodeEnum!
+    success: Boolean!
+    message: String!
+    token: String
+    nextPage: String
+}
+
+input RegisterInput {
+    email: String!
+    first_name: String!
+    last_name: String!
+    password: String!
+}
+
+type RegisterResult {
+    code: MutationCodeEnum!
+    success: Boolean!
+    message: String!
+    token: String
+    nextPage: String
+}
