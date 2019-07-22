@@ -8,14 +8,14 @@ export const theme = {
     colors: {
         g0: "#FAFAFA",
         g1: "#f6f6f6",
-        g2: "#eaeaea",
-        g3: "#D7DADB",
-        primary: "",
-        secondary: "",
-        tertiary: "",
-        error: "",
+        g2: "#dfe6e9",
+        g3: "#b2bec3",
+        primary: "#0984e3",
+        secondary: "#00b894",
+        tertiary: "#ff7675",
         white: "#fff",
-        black: "#36454f"
+        black: "#2d3436",
+        error: "#A64636"
     },
 }
 

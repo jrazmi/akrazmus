@@ -1,15 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
+import { Container, Row, Col } from './Util';
 import styled from 'styled-components';
 import { MainNavigation } from './Util/Navigation';
 
 export const PageBody = styled('div')``;
 export const PageHeader = styled('header')``;
-export const PageMain = styled('main')``;
-export const PageFooter = styled('footer')``;
+export const PageMain = styled('main')`
+    min-height: calc(100vh - 290px);
+`;
+export const PageFooter = styled('footer')`
+    padding: 100px 0px;
+    background-color: ${props => props.theme.colors.black};
+`;
 
 
 export default class Page extends React.Component {

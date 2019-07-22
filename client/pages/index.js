@@ -1,12 +1,19 @@
 import React from 'react';
 import Page from '../components/Page';
 import { GetCurrentUser } from '../queries';
-import { CurrentUser } from '../lib/constructors'
+import { CurrentUser } from '../lib/constructors';
+import { parseCookies } from 'nookies';
+
 export default class Index extends React.Component {
     static async getInitialProps ({...ctx}){
-        const { currentUser } = await GetCurrentUser(ctx.apolloClient);
+        let currentUser;
         let nextPage;
-        console.log(currentUser);
+
+        const cookies = parseCookies(ctx);
+        if(cookies.token){
+            currentUser  = await GetCurrentUser(ctx.apolloClient);
+        }
+        
         return { currentUser, nextPage };
     }
     render(){
