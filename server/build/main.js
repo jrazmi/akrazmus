@@ -154,10 +154,8 @@ module.exports = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _loaders__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./loaders */ "./src/loaders/index.js");
-const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
 
-
-/* harmony default export */ __webpack_exports__["default"] = (async (req, res) => {
+/* harmony default export */ __webpack_exports__["default"] = (async (req, res, db) => {
   let currentUser; // initialize dataloaders to context
 
   const loaders = {
@@ -171,6 +169,7 @@ const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
       }
     } // load currentuser into context
     // do we want to actually load user or no?
+    // console.log(req)
 
   };
 
@@ -213,6 +212,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+const db = __webpack_require__(/*! ../db/knex.js */ "./db/knex.js");
+
 __webpack_require__(/*! dotenv */ "dotenv").config();
 
 const server = new graphql_yoga__WEBPACK_IMPORTED_MODULE_0__["GraphQLServer"]({
@@ -221,7 +222,7 @@ const server = new graphql_yoga__WEBPACK_IMPORTED_MODULE_0__["GraphQLServer"]({
   context: ({
     request,
     response
-  }) => Object(_context__WEBPACK_IMPORTED_MODULE_4__["default"])(request, response),
+  }) => Object(_context__WEBPACK_IMPORTED_MODULE_4__["default"])(request, response, db),
   middlewares: [_middleware_auth__WEBPACK_IMPORTED_MODULE_5__["AuthMiddleware"]]
 });
 server.express.use(express_jwt__WEBPACK_IMPORTED_MODULE_1___default()({
@@ -390,7 +391,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const isAuthenticated = Object(graphql_shield__WEBPACK_IMPORTED_MODULE_0__["rule"])({
   cache: "contextual"
-})(async (root, args, ctx, info) => {
+})(async (parent, args, ctx) => {
   if (!ctx.currentUser) return false;
   if (ctx.currentUser.deleted) return false;
   return true;
@@ -857,7 +858,7 @@ const EmailRPR = (type, content) => {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! /Users/elwyn/gps/labs/akrazmus/server/src/index.js */"./src/index.js");
+module.exports = __webpack_require__(/*! /Users/elwyn/jrazmi/akrazmus/server/src/index.js */"./src/index.js");
 
 
 /***/ }),

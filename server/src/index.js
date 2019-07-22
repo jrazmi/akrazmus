@@ -4,13 +4,14 @@ import resolvers from "./resolvers";
 import typeDefs from "./types";
 import context from './context';
 import { AuthMiddleware } from './middleware/auth';
+const db = require('../db/knex.js');
 
 require("dotenv").config();
 
 const server = new GraphQLServer({
     typeDefs,
     resolvers,
-    context: ({request, response}) => context(request,response),
+    context: ({request, response}) => context(request,response, db),
     middlewares:[
       AuthMiddleware
     ]

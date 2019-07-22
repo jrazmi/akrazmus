@@ -1,7 +1,6 @@
-const db = require('../db/knex.js');
 import { SingleLoader, ManyLoader } from './loaders';
 
-export default async (req, res) => {
+export default async (req, res, db) => {
     let currentUser;
     // initialize dataloaders to context
     const loaders = {
@@ -18,6 +17,7 @@ export default async (req, res) => {
 
     // load currentuser into context
     // do we want to actually load user or no?
+    // console.log(req)
     if(req && req.user) {
         currentUser = await loaders.user.id.load(req.user.id);
     }

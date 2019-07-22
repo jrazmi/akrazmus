@@ -7,7 +7,7 @@
     "dev": "yarn migrate-up && backpack",
     "dev-down": "yarn migrate-down && yarn migrate-up && backpack",
     "build": "rimraf build/ && backpack build",
-    "test": "NODE_ENV=test jest --detectOpenHandles",
+    "test": "NODE_ENV=test jest --detectOpenHandles --runInBand --forceExit",
     "test_watch": "NODE_ENV=test jest --watch",
     "migrate-down": "knex-migrate down --to 0",
     "migrate-up": "knex-migrate up",
