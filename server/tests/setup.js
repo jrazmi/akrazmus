@@ -11,14 +11,14 @@ import makeContext from '../src/context';
 
 export const db = require('./testDB.js');
 
-export const before = async(done) => {
+export const before = async() => {
     let rollback = await db.migrate.rollback();
     let migrate = await db.migrate.latest();
     let seed = await db.seed.run();
     return
 }
 
-export const after = async(done) => {
+export const after = async() => {
    let rollback = await db.migrate.rollback();
    return
 }

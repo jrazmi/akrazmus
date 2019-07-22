@@ -22,7 +22,7 @@ export const register = async(root,args,ctx,info) => {
     });
 
     const user = await ctx.db('users').insert(userData).return('*');
-
+    
     return(
         {
             code: "OK",

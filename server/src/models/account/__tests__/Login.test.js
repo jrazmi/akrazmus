@@ -22,11 +22,11 @@ describe("requestLogin", () => {
         const response = await ctx.mockCall(REQUEST_LOGIN_MUTATION);
 
         //error list contains email required
-        let emailError = _.filter(response.errors, e => e.message.indexOf('$email') !== -1);
+        const emailError = _.filter(response.errors, e => e.message.indexOf('$email') !== -1);
         expect(emailError.length >= 1).toBe(true);
 
         //error list contains password required
-        let passwordError = _.filter(response.errors, e => e.message.indexOf('$password') !== -1);
+        const passwordError = _.filter(response.errors, e => e.message.indexOf('$password') !== -1);
         expect(passwordError.length >= 1).toBe(true);
     });
 

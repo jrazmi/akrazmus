@@ -630,9 +630,15 @@ const requestPasswordReset = async (root, args, ctx, info) => {
         Data: "Request Password Reset"
       }
     },
-    Source: process.env.FROM_EMAIL
+    Source: process.env.FROM_EMAIL //send email if not running tests.
+
   };
-  const sendEmail = await _util_aws__WEBPACK_IMPORTED_MODULE_1__["ses"].sendEmail(emailParams).promise();
+
+  if (true) {
+    const sendEmail = await _util_aws__WEBPACK_IMPORTED_MODULE_1__["ses"].sendEmail(emailParams).promise();
+  }
+
+  ;
   return {
     code: "OK",
     success: true,

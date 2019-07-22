@@ -48,7 +48,10 @@ export const requestPasswordReset = async ( root, args, ctx, info ) => {
           Source: process.env.FROM_EMAIL
     }
     
-    const sendEmail = await ses.sendEmail(emailParams).promise();
+    //send email if not running tests.
+    if(process.env.NODE_ENV !== 'test'){
+      const sendEmail = await ses.sendEmail(emailParams).promise();
+    };
 
     return{
         code: "OK",
