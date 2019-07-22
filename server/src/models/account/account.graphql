@@ -3,7 +3,7 @@ type Query {
 }
 
 type Mutation {
-    login(email: String!, password: String!): RequestLoginResult!
+    requestLogin(email: String!, password: String!): RequestLoginResult!
     register(input: RegisterInput!): RegisterResult!
     requestPasswordReset(email: String!, link: String!): BasicMutationResponse!
     resetPassword(token: String!, password: String!): BasicMutationResponse!

@@ -2,7 +2,7 @@ import jsonwebtoken from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { FormatEmail } from '../../util';
 
-export const login = async(root,args,ctx,info) => {
+export const requestLogin = async(root,args,ctx,info) => {
     // Load user from formatted email
     const user = await ctx.loaders.user.email.load(FormatEmail(args.email));
 

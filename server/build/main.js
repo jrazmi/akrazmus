@@ -413,7 +413,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Mutation", function() { return Mutation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShieldMutation", function() { return ShieldMutation; });
 /* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./me */ "./src/models/account/me.js");
-/* harmony import */ var _login__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./login */ "./src/models/account/login.js");
+/* harmony import */ var _requestLogin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./requestLogin */ "./src/models/account/requestLogin.js");
 /* harmony import */ var _register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./register */ "./src/models/account/register.js");
 /* harmony import */ var _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./requestPasswordReset */ "./src/models/account/requestPasswordReset.js");
 /* harmony import */ var _resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resetPassword */ "./src/models/account/resetPassword.js");
@@ -431,79 +431,12 @@ const ShieldQuery = {
   me: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
 };
 const Mutation = {
-  login: _login__WEBPACK_IMPORTED_MODULE_1__["login"],
+  requestLogin: _requestLogin__WEBPACK_IMPORTED_MODULE_1__["requestLogin"],
   register: _register__WEBPACK_IMPORTED_MODULE_2__["register"],
   requestPasswordReset: _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__["requestPasswordReset"],
   resetPassword: _resetPassword__WEBPACK_IMPORTED_MODULE_4__["resetPassword"]
 };
-const ShieldMutation = {
-  login: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
-};
-
-/***/ }),
-
-/***/ "./src/models/account/login.js":
-/*!*************************************!*\
-  !*** ./src/models/account/login.js ***!
-  \*************************************/
-/*! exports provided: login */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "login", function() { return login; });
-/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
-/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
-
-
-
-const login = async (root, args, ctx, info) => {
-  // Load user from formatted email
-  const user = await ctx.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_2__["FormatEmail"])(args.email)); //set Generic Invalid Credential error
-
-  const credAuthError = {
-    code: "DOES_NOT_EXIST",
-    success: false,
-    message: "Could not find matching user with these credentials"
-  }; // if no user exists return GIC
-
-  if (!user) {
-    return credAuthError;
-  } // compare password and return GIC if mismatch
-
-
-  const valid = await bcryptjs__WEBPACK_IMPORTED_MODULE_1___default.a.compare(args.password, user.password);
-
-  if (!valid) {
-    return credAuthError;
-  } //if user has been deleted/suspended return susspension error
-
-
-  if (user.deleted) {
-    return {
-      code: "REVOKED",
-      success: false,
-      message: "Access for this user account has been revoked."
-    };
-  } // set token for user
-
-
-  const token = jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default.a.sign({
-    id: user.id,
-    email: user.email
-  }, process.env.TOKEN_SECRET, {
-    expiresIn: '30d'
-  });
-  return {
-    code: "OK",
-    success: true,
-    message: "Login Successful",
-    token: token
-  };
-};
+const ShieldMutation = {};
 
 /***/ }),
 
@@ -562,6 +495,71 @@ const register = async (root, args, ctx, info) => {
     success: true,
     message: "Go Log In!",
     nextPage: "/login"
+  };
+};
+
+/***/ }),
+
+/***/ "./src/models/account/requestLogin.js":
+/*!********************************************!*\
+  !*** ./src/models/account/requestLogin.js ***!
+  \********************************************/
+/*! exports provided: requestLogin */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "requestLogin", function() { return requestLogin; });
+/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
+/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
+
+
+
+const requestLogin = async (root, args, ctx, info) => {
+  // Load user from formatted email
+  const user = await ctx.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_2__["FormatEmail"])(args.email)); //set Generic Invalid Credential error
+
+  const credAuthError = {
+    code: "DOES_NOT_EXIST",
+    success: false,
+    message: "Could not find matching user with these credentials"
+  }; // if no user exists return GIC
+
+  if (!user) {
+    return credAuthError;
+  } // compare password and return GIC if mismatch
+
+
+  const valid = await bcryptjs__WEBPACK_IMPORTED_MODULE_1___default.a.compare(args.password, user.password);
+
+  if (!valid) {
+    return credAuthError;
+  } //if user has been deleted/suspended return susspension error
+
+
+  if (user.deleted) {
+    return {
+      code: "REVOKED",
+      success: false,
+      message: "Access for this user account has been revoked."
+    };
+  } // set token for user
+
+
+  const token = jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default.a.sign({
+    id: user.id,
+    email: user.email
+  }, process.env.TOKEN_SECRET, {
+    expiresIn: '30d'
+  });
+  return {
+    code: "OK",
+    success: true,
+    message: "Login Successful",
+    token: token
   };
 };
 

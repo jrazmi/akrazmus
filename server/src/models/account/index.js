@@ -1,5 +1,5 @@
 import { me } from './me';
-import { login } from './login';
+import { requestLogin } from './requestLogin';
 import { register } from './register';
 import { requestPasswordReset } from './requestPasswordReset';
 import { resetPassword } from './resetPassword';
@@ -15,12 +15,11 @@ export const ShieldQuery = {
 
 
 export const Mutation = {
-    login,
+    requestLogin,
     register,
     requestPasswordReset,
     resetPassword,
 }
 
 export const ShieldMutation = {
-    login: isAuthenticated
 }
