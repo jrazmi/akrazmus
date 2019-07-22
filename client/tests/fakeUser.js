@@ -7,5 +7,5 @@ export const fakeUser = () => ({
     id: faker.random.uuid(),
     email: faker.internet.email(),
     first_name: faker.name.firstName(),
-    last_name: faker.last_name.lastName()
+    last_name: faker.name.lastName()
 })

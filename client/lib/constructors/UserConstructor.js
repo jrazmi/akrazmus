@@ -10,7 +10,8 @@ export const CurrentUser = (props) => {
 export class UserObject {
     constructor(me){
         this.id = me.id;
-        this.name = me.name;
+        this.first_name = me.first_name;
+        this.last_name = me.last_name;
         this.email = me.email;
     }
 
