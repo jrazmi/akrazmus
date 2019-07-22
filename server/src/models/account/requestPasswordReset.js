@@ -1,5 +1,4 @@
 import { FormatEmail } from '../../util';
-import { ses } from '../../util/aws';
 import { EmailRPR } from '../../util/templates/EmailRPR';
 import jsonwebtoken from 'jsonwebtoken';
 
@@ -47,15 +46,20 @@ export const requestPasswordReset = async ( root, args, ctx, info ) => {
           },
           Source: process.env.FROM_EMAIL
     }
-    
-    //send email if not running tests.
-    if(process.env.NODE_ENV !== 'test'){
-      const sendEmail = await ses.sendEmail(emailParams).promise();
-    };
-
-    return{
+    // try to send it otherwise you know... error.
+    try {
+      const send = await ctx.sendEmail(emailParams);
+      return{
         code: "OK",
         success: true,
         message: "Check your email for a reset link"
+      }
+    } catch (e) {
+      console.log(e)
+      return {
+        code: "INPUT_ERROR",
+        success: false,
+        message: "Email could not be sent"
+      }
     }
 }

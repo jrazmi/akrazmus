@@ -154,6 +154,8 @@ module.exports = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _loaders__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./loaders */ "./src/loaders/index.js");
+/* harmony import */ var _src_util_aws__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../src/util/aws */ "./src/util/aws/index.js");
+
 
 /* harmony default export */ __webpack_exports__["default"] = (async (req, res, db) => {
   let currentUser; // initialize dataloaders to context
@@ -182,7 +184,8 @@ __webpack_require__.r(__webpack_exports__);
     res,
     currentUser: currentUser,
     db,
-    loaders: loaders
+    loaders: loaders,
+    sendEmail: _src_util_aws__WEBPACK_IMPORTED_MODULE_1__["sendEmail"]
   };
 });
 
@@ -576,11 +579,9 @@ const requestLogin = async (root, args, ctx, info) => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "requestPasswordReset", function() { return requestPasswordReset; });
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
-/* harmony import */ var _util_aws__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/aws */ "./src/util/aws/index.js");
-/* harmony import */ var _util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/templates/EmailRPR */ "./src/util/templates/EmailRPR.js");
-/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
-/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_3__);
-
+/* harmony import */ var _util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/templates/EmailRPR */ "./src/util/templates/EmailRPR.js");
+/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
+/* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_2__);
 
 
 
@@ -599,7 +600,7 @@ const requestPasswordReset = async (root, args, ctx, info) => {
     return credAuthError;
   }
 
-  const resetToken = jsonwebtoken__WEBPACK_IMPORTED_MODULE_3___default.a.sign({
+  const resetToken = jsonwebtoken__WEBPACK_IMPORTED_MODULE_2___default.a.sign({
     id: user.id,
     email: user.email
   }, process.env.TOKEN_SECRET, {
@@ -618,11 +619,11 @@ const requestPasswordReset = async (root, args, ctx, info) => {
       Body: {
         Text: {
           Charset: "UTF-8",
-          Data: Object(_util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_2__["EmailRPR"])("text", templateParams)
+          Data: Object(_util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_1__["EmailRPR"])("text", templateParams)
         },
         Html: {
           Charset: "UTF-8",
-          Data: Object(_util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_2__["EmailRPR"])("html", templateParams)
+          Data: Object(_util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_1__["EmailRPR"])("html", templateParams)
         }
       },
       Subject: {
@@ -630,20 +631,25 @@ const requestPasswordReset = async (root, args, ctx, info) => {
         Data: "Request Password Reset"
       }
     },
-    Source: process.env.FROM_EMAIL //send email if not running tests.
+    Source: process.env.FROM_EMAIL // try to send it otherwise you know... error.
 
   };
 
-  if (true) {
-    const sendEmail = await _util_aws__WEBPACK_IMPORTED_MODULE_1__["ses"].sendEmail(emailParams).promise();
+  try {
+    const send = await ctx.sendEmail(emailParams);
+    return {
+      code: "OK",
+      success: true,
+      message: "Check your email for a reset link"
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      code: "INPUT_ERROR",
+      success: false,
+      message: "Email could not be sent"
+    };
   }
-
-  ;
-  return {
-    code: "OK",
-    success: true,
-    message: "Check your email for a reset link"
-  };
 };
 
 /***/ }),
@@ -773,12 +779,12 @@ const FormatEmail = email => {
 /*!*******************************!*\
   !*** ./src/util/aws/index.js ***!
   \*******************************/
-/*! exports provided: ses */
+/*! exports provided: sendEmail */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ses", function() { return ses; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sendEmail", function() { return sendEmail; });
 /* harmony import */ var aws_sdk__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! aws-sdk */ "aws-sdk");
 /* harmony import */ var aws_sdk__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(aws_sdk__WEBPACK_IMPORTED_MODULE_0__);
 
@@ -789,7 +795,11 @@ aws_sdk__WEBPACK_IMPORTED_MODULE_0___default.a.config.update({
 });
 const ses = new aws_sdk__WEBPACK_IMPORTED_MODULE_0___default.a.SES({
   apiVersion: '2010-12-01'
-});
+}); // init send function for test mocking
+
+const sendEmail = async params => {
+  return await ses.sendEmail(params).promise();
+};
 
 /***/ }),
 

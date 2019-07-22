@@ -6,4 +6,12 @@ AWS.config.update({
     region: 'us-east-1'
 })
 
-export const ses = new AWS.SES({apiVersion: '2010-12-01'});
+const ses = new AWS.SES({apiVersion: '2010-12-01'});
+
+
+// init send function for test mocking
+export const sendEmail = async(params) => {
+    return await ses.sendEmail(params).promise()
+};
+
+

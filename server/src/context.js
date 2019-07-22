@@ -1,4 +1,5 @@
 import { SingleLoader, ManyLoader } from './loaders';
+import { sendEmail } from '../src/util/aws';
 
 export default async (req, res, db) => {
     let currentUser;
@@ -28,5 +29,6 @@ export default async (req, res, db) => {
         currentUser: currentUser,
         db,
         loaders: loaders,
+        sendEmail: sendEmail
     }
 };
