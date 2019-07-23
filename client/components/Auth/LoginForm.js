@@ -5,7 +5,6 @@ import { gql } from "apollo-boost";
 import * as Yup from "yup";
 import { H1, TextField, FormStatus, PrimaryButton } from '../Util';
 import { MMR, SubMut } from '../../lib/Util';
-import { Site } from '../../lib/siteConfig';
 import { setCookie } from 'nookies';
 import redirect from '../../lib/redirect';
 

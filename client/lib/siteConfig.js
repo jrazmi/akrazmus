@@ -7,7 +7,7 @@ export const Site = {
             login: '/login',
             resetRequest: '/request-reset',
             resetPassword: '/reset-password',
-            validateLogin: '/validate-login',
+            register: '/register'
         }
     }
 }
