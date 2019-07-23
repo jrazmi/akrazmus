@@ -3,7 +3,7 @@ import { Mutation } from 'react-apollo';
 import { Formik, Form, Field } from "formik";
 import { gql } from "apollo-boost";
 import * as Yup from "yup";
-import { TextField, FormStatus, PrimaryButton } from "../Util";
+import { H1, TextField, FormStatus, PrimaryButton } from "../Util";
 import { MMR, SubMut } from '../../lib/Util';
 
 
@@ -57,6 +57,7 @@ export class RequestPasswordResetForm extends React.Component {
                         {(props) => {
                             return(
                                 <Form noValidate>
+                                    <H1> Reset Password </H1>
                                     {props.status && props.status.form && 
                                         <FormStatus status={props.status.form}/>
                                     }
