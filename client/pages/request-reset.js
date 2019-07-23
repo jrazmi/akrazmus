@@ -4,14 +4,13 @@ import { GetCurrentUser } from '../queries';
 import { CurrentUser } from '../lib/constructors';
 import { parseCookies } from 'nookies';
 import { Container, Row, Col, Box } from '../components/Util';
-import { LoginForm } from '../components/Auth';
+import { RequestPasswordResetForm } from '../components/Auth';
 
-export default class Login extends React.Component {
+export default class RequestPasswordReset extends React.Component {
     static async getInitialProps ({...ctx}){
         let currentUser;
         let nextPage;
 
-        // if token exists send a get current user query
         const cookies = parseCookies(ctx);
         if(cookies.token){
             currentUser  = await GetCurrentUser(ctx.apolloClient);
@@ -27,7 +26,7 @@ export default class Login extends React.Component {
                     <Row bsPrefix={"row justify-content-center py-5"}>
                         <Col md={6}>
                             <Box>
-                                <LoginForm />
+                                <RequestPasswordResetForm />
 
                             </Box>
                         </Col>

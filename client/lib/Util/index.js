@@ -13,6 +13,7 @@ export const MMR = async (response, returnName) => {
     }
 
     // normalize when data isn't returned
+    
     if(!response['data'] || !response['data'][returnName]){
         let message = "Invalid response";
         if(response.message) {

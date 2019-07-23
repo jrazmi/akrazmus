@@ -11,9 +11,8 @@ export default class Index extends React.Component {
 
         const cookies = parseCookies(ctx);
         if(cookies.token){
-            currentUser  = await GetCurrentUser(ctx.apolloClient);
+            ({ currentUser } = await GetCurrentUser(ctx.apolloClient));
         }
-        
         return { currentUser, nextPage };
     }
     render(){

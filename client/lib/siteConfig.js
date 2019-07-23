@@ -3,8 +3,11 @@ export const Site = {
         title: "Jrazmi"
     },
     routes: {
-        public: {
+        auth: {
             login: '/login',
+            resetRequest: '/request-reset',
+            resetPassword: '/reset-password',
+            validateLogin: '/validate-login',
         }
     }
 }

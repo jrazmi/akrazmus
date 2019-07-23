@@ -11,7 +11,6 @@ import { theme, AddGlobals } from '../styles';
 class Application extends App {
     static async getInitialProps({Component, ctx}) {
         let pageProps = {};
-        
         // pass in page specific props to app
         if (Component.getInitialProps) {
             pageProps = await Component.getInitialProps(ctx);

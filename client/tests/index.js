@@ -8,8 +8,8 @@ import { theme } from '../styles';
 export const mockWrapper = (mocks, Component) => {
     let apolloClient;
     const wrapper = mount(
-        <MockedProvider mocks={mocks} addTypename={false}>
-            <ThemeProvider theme={theme}>
+        <MockedProvider mocks={mocks}>
+            <ThemeProvider theme={theme} addTypeName={false}>
                 <ApolloConsumer>
                     {client => {
                         apolloClient = client;
