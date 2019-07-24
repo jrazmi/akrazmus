@@ -13,11 +13,10 @@ export class UserObject {
         this.first_name = me.first_name;
         this.last_name = me.last_name;
         this.email = me.email;
+        this.globalPermissions = me.globalPermissions;
     }
 
-    sayHi(){
-        return `Hi ${this.name}`;
+    hasGlobalPermission(perm) {
+        return _.includes(this.globalPermissions, perm);
     }
-
-    
 }
