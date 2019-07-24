@@ -6,8 +6,8 @@ export default async (req, res, db) => {
     // initialize dataloaders to context
     const loaders = {
         user: {
-            id: SingleLoader('users', 'id'),
-            email: SingleLoader('users', 'email')
+            id: SingleLoader(db, 'users', 'id'),
+            email: SingleLoader(db, 'users', 'email')
         },
         permissions: {
             global: {

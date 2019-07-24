@@ -1,6 +1,6 @@
 import jsonwebtoken from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { FormatEmail } from '../../util';
+import { FormatEmail } from '../../../util';
 
 export const requestLogin = async(root,args,ctx,info) => {
     // Load user from formatted email

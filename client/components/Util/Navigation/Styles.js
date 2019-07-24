@@ -43,7 +43,7 @@ export const NavDrop = styled(NavDropdown)`
         top: 58px;
         border-radius: 0px;
         border: none;
-        background-color: ${props => props.theme.colors.g3};
+        background-color: ${props => props.theme.colors.g2};
         .dropdown-item {
         text-transform: uppercase;
         -webkit-transition: .25s ease-in-out;

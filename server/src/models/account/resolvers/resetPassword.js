@@ -1,5 +1,5 @@
 import jsonwebtoken from 'jsonwebtoken';
-import { FormatEmail } from '../../util';
+import { FormatEmail } from '../../../util';
 import bcrypt from 'bcryptjs';
 
 export const resetPassword = async ( root, args, ctx, info ) => {

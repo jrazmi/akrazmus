@@ -1,8 +1,9 @@
-import { me } from './me';
-import { requestLogin } from './requestLogin';
-import { register } from './register';
-import { requestPasswordReset } from './requestPasswordReset';
-import { resetPassword } from './resetPassword';
+import { me } from './resolvers/me';
+import { requestLogin } from './resolvers/requestLogin';
+import { register } from './resolvers/register';
+import { requestPasswordReset } from './resolvers/requestPasswordReset';
+import { resetPassword } from './resolvers/resetPassword';
+import { updateMe } from './resolvers/updateMe';
 import { isAuthenticated, hasGlobalPerm } from '../../middleware/auth/rules';
 
 export const Query = {
@@ -19,7 +20,9 @@ export const Mutation = {
     register,
     requestPasswordReset,
     resetPassword,
+    updateMe,
 }
 
 export const ShieldMutation = {
+    updateMe: isAuthenticated
 }

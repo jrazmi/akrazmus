@@ -1,4 +1,4 @@
-import { FormatEmail } from '../../util';
+import { FormatEmail } from '../../../util';
 import bcrypt from 'bcryptjs';
 
 export const register = async(root,args,ctx,info) => {

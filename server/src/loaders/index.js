@@ -1,7 +1,6 @@
 import DataLoader from 'dataloader';
-const db = require('../../db/knex.js');
 
-export const SingleLoader = (table, key) => new DataLoader(
+export const SingleLoader = (db, table, key) => new DataLoader(
     (keys) => {
         return(
             db.table(table)
@@ -20,7 +19,7 @@ export const SingleLoader = (table, key) => new DataLoader(
     }
 )
 
-export const ManyLoader = (table, key) => new DataLoader(
+export const ManyLoader = (db, table, key) => new DataLoader(
     (keys) => {
         return(
             db.table(table)

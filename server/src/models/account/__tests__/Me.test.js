@@ -21,7 +21,6 @@ describe("ME", () => {
         const response = await ctx.mockCall(ME_QUERY);
         expect(response.data.me).toBeNull();
         expect(response.errors[0].message).toEqual("Not Authorized");
-        expect(true).toBe(true);
     });
 
     it('Me query should return user object produced from request context', async() => {

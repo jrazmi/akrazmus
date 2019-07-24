@@ -162,8 +162,8 @@ __webpack_require__.r(__webpack_exports__);
 
   const loaders = {
     user: {
-      id: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])('users', 'id'),
-      email: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])('users', 'email')
+      id: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])(db, 'users', 'id'),
+      email: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["SingleLoader"])(db, 'users', 'email')
     },
     permissions: {
       global: {
@@ -278,17 +278,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dataloader */ "dataloader");
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dataloader__WEBPACK_IMPORTED_MODULE_0__);
 
-
-const db = __webpack_require__(/*! ../../db/knex.js */ "./db/knex.js");
-
-const SingleLoader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
+const SingleLoader = (db, table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
   return db.table(table).whereIn(key, keys).select().then(rows => {
     return keys.map(ikey => {
       return rows.find(x => x[key] === ikey);
     });
   });
 });
-const ManyLoader = (table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
+const ManyLoader = (db, table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
   return db.table(table).whereIn(key, keys).select().then(rows => {
     return keys.map(ikey => {
       return rows.filter(x => x[key] === ikey);
@@ -415,12 +412,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShieldQuery", function() { return ShieldQuery; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Mutation", function() { return Mutation; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ShieldMutation", function() { return ShieldMutation; });
-/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./me */ "./src/models/account/me.js");
-/* harmony import */ var _requestLogin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./requestLogin */ "./src/models/account/requestLogin.js");
-/* harmony import */ var _register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./register */ "./src/models/account/register.js");
-/* harmony import */ var _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./requestPasswordReset */ "./src/models/account/requestPasswordReset.js");
-/* harmony import */ var _resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resetPassword */ "./src/models/account/resetPassword.js");
-/* harmony import */ var _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../middleware/auth/rules */ "./src/middleware/auth/rules/index.js");
+/* harmony import */ var _resolvers_me__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resolvers/me */ "./src/models/account/resolvers/me.js");
+/* harmony import */ var _resolvers_requestLogin__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./resolvers/requestLogin */ "./src/models/account/resolvers/requestLogin.js");
+/* harmony import */ var _resolvers_register__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./resolvers/register */ "./src/models/account/resolvers/register.js");
+/* harmony import */ var _resolvers_requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./resolvers/requestPasswordReset */ "./src/models/account/resolvers/requestPasswordReset.js");
+/* harmony import */ var _resolvers_resetPassword__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./resolvers/resetPassword */ "./src/models/account/resolvers/resetPassword.js");
+/* harmony import */ var _resolvers_updateMe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./resolvers/updateMe */ "./src/models/account/resolvers/updateMe.js");
+/* harmony import */ var _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../middleware/auth/rules */ "./src/middleware/auth/rules/index.js");
+
 
 
 
@@ -428,25 +427,28 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const Query = {
-  me: _me__WEBPACK_IMPORTED_MODULE_0__["me"]
+  me: _resolvers_me__WEBPACK_IMPORTED_MODULE_0__["me"]
 };
 const ShieldQuery = {
-  me: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_5__["isAuthenticated"]
+  me: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_6__["isAuthenticated"]
 };
 const Mutation = {
-  requestLogin: _requestLogin__WEBPACK_IMPORTED_MODULE_1__["requestLogin"],
-  register: _register__WEBPACK_IMPORTED_MODULE_2__["register"],
-  requestPasswordReset: _requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__["requestPasswordReset"],
-  resetPassword: _resetPassword__WEBPACK_IMPORTED_MODULE_4__["resetPassword"]
+  requestLogin: _resolvers_requestLogin__WEBPACK_IMPORTED_MODULE_1__["requestLogin"],
+  register: _resolvers_register__WEBPACK_IMPORTED_MODULE_2__["register"],
+  requestPasswordReset: _resolvers_requestPasswordReset__WEBPACK_IMPORTED_MODULE_3__["requestPasswordReset"],
+  resetPassword: _resolvers_resetPassword__WEBPACK_IMPORTED_MODULE_4__["resetPassword"],
+  updateMe: _resolvers_updateMe__WEBPACK_IMPORTED_MODULE_5__["updateMe"]
 };
-const ShieldMutation = {};
+const ShieldMutation = {
+  updateMe: _middleware_auth_rules__WEBPACK_IMPORTED_MODULE_6__["isAuthenticated"]
+};
 
 /***/ }),
 
-/***/ "./src/models/account/me.js":
-/*!**********************************!*\
-  !*** ./src/models/account/me.js ***!
-  \**********************************/
+/***/ "./src/models/account/resolvers/me.js":
+/*!********************************************!*\
+  !*** ./src/models/account/resolvers/me.js ***!
+  \********************************************/
 /*! exports provided: me */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -459,17 +461,17 @@ const me = async (root, args, ctx, info) => {
 
 /***/ }),
 
-/***/ "./src/models/account/register.js":
-/*!****************************************!*\
-  !*** ./src/models/account/register.js ***!
-  \****************************************/
+/***/ "./src/models/account/resolvers/register.js":
+/*!**************************************************!*\
+  !*** ./src/models/account/resolvers/register.js ***!
+  \**************************************************/
 /*! exports provided: register */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "register", function() { return register; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_1__);
 
@@ -503,10 +505,10 @@ const register = async (root, args, ctx, info) => {
 
 /***/ }),
 
-/***/ "./src/models/account/requestLogin.js":
-/*!********************************************!*\
-  !*** ./src/models/account/requestLogin.js ***!
-  \********************************************/
+/***/ "./src/models/account/resolvers/requestLogin.js":
+/*!******************************************************!*\
+  !*** ./src/models/account/resolvers/requestLogin.js ***!
+  \******************************************************/
 /*! exports provided: requestLogin */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -517,7 +519,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
 
 
 
@@ -568,18 +570,18 @@ const requestLogin = async (root, args, ctx, info) => {
 
 /***/ }),
 
-/***/ "./src/models/account/requestPasswordReset.js":
-/*!****************************************************!*\
-  !*** ./src/models/account/requestPasswordReset.js ***!
-  \****************************************************/
+/***/ "./src/models/account/resolvers/requestPasswordReset.js":
+/*!**************************************************************!*\
+  !*** ./src/models/account/resolvers/requestPasswordReset.js ***!
+  \**************************************************************/
 /*! exports provided: requestPasswordReset */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "requestPasswordReset", function() { return requestPasswordReset; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
-/* harmony import */ var _util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/templates/EmailRPR */ "./src/util/templates/EmailRPR.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
+/* harmony import */ var _util_templates_EmailRPR__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../util/templates/EmailRPR */ "./src/util/templates/EmailRPR.js");
 /* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
 /* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -654,10 +656,10 @@ const requestPasswordReset = async (root, args, ctx, info) => {
 
 /***/ }),
 
-/***/ "./src/models/account/resetPassword.js":
-/*!*********************************************!*\
-  !*** ./src/models/account/resetPassword.js ***!
-  \*********************************************/
+/***/ "./src/models/account/resolvers/resetPassword.js":
+/*!*******************************************************!*\
+  !*** ./src/models/account/resolvers/resetPassword.js ***!
+  \*******************************************************/
 /*! exports provided: resetPassword */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -666,7 +668,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetPassword", function() { return resetPassword; });
 /* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jsonwebtoken */ "jsonwebtoken");
 /* harmony import */ var jsonwebtoken__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jsonwebtoken__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util */ "./src/util/index.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -708,6 +710,50 @@ const resetPassword = async (root, args, ctx, info) => {
     code: "OK",
     success: true,
     message: "Password has been updated"
+  };
+};
+
+/***/ }),
+
+/***/ "./src/models/account/resolvers/updateMe.js":
+/*!**************************************************!*\
+  !*** ./src/models/account/resolvers/updateMe.js ***!
+  \**************************************************/
+/*! exports provided: updateMe */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateMe", function() { return updateMe; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
+
+const updateMe = async (root, args, ctx, info) => {
+  // leaving this in here in case we want to remove user query from context constructor
+  // shouldn't be returned if shield isAuthenticated middleware applied
+  if (!ctx.currentUser) {
+    return {
+      code: "EXPIRED",
+      success: false,
+      message: "No current user"
+    };
+  }
+
+  const [err, update] = await Object(_util__WEBPACK_IMPORTED_MODULE_0__["prove"])(ctx.db('users').where({
+    id: ctx.currentUser.id
+  }).update(args.input));
+
+  if (err) {
+    return {
+      code: "ERROR",
+      success: false,
+      message: err.message ? err.message : 'Unknown error'
+    };
+  }
+
+  return {
+    code: "OK",
+    success: true,
+    message: "Profile updated"
   };
 };
 
@@ -775,6 +821,22 @@ const FormatEmail = email => {
 
 /***/ }),
 
+/***/ "./src/util/Prove.js":
+/*!***************************!*\
+  !*** ./src/util/Prove.js ***!
+  \***************************/
+/*! exports provided: prove */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prove", function() { return prove; });
+const prove = promise => {
+  return promise.then(data => [null, data]).catch(err => [err]);
+};
+
+/***/ }),
+
 /***/ "./src/util/aws/index.js":
 /*!*******************************!*\
   !*** ./src/util/aws/index.js ***!
@@ -807,13 +869,17 @@ const sendEmail = async params => {
 /*!***************************!*\
   !*** ./src/util/index.js ***!
   \***************************/
-/*! exports provided: FormatEmail */
+/*! exports provided: FormatEmail, prove */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _FormatEmail__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FormatEmail */ "./src/util/FormatEmail.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FormatEmail", function() { return _FormatEmail__WEBPACK_IMPORTED_MODULE_0__["FormatEmail"]; });
+
+/* harmony import */ var _Prove__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Prove */ "./src/util/Prove.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "prove", function() { return _Prove__WEBPACK_IMPORTED_MODULE_1__["prove"]; });
+
 
 
 

@@ -1,5 +1,5 @@
-import { FormatEmail } from '../../util';
-import { EmailRPR } from '../../util/templates/EmailRPR';
+import { FormatEmail } from '../../../util';
+import { EmailRPR } from '../../../util/templates/EmailRPR';
 import jsonwebtoken from 'jsonwebtoken';
 
 export const requestPasswordReset = async ( root, args, ctx, info ) => {

@@ -15,6 +15,7 @@ enum MutationCodeEnum {
   OK
   EXPIRED
   REVOKED
+  ERROR
 }
 
 type BasicMutationResponse {

@@ -7,8 +7,13 @@ type Mutation {
     register(input: RegisterInput!): RegisterResult!
     requestPasswordReset(email: String!, link: String!): BasicMutationResponse!
     resetPassword(token: String!, password: String!): BasicMutationResponse!
+    updateMe(input: UpdateMeInput!): BasicMutationResponse!
 }
 
+input UpdateMeInput {
+    first_name: String
+    last_name: String
+}
 type RequestLoginResult {
     code: MutationCodeEnum!
     success: Boolean!
