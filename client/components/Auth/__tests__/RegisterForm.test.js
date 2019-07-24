@@ -57,7 +57,7 @@ describe('<RegisterForm/>', () => {
         wrapper.find('input[name="password"]').simulate('change', {target: {name: "password", value: "foo"}});
         wrapper.find('form').simulate('submit');
 
-        await wait(100);
+        await wait(200);
         wrapper.update();
         expect(wrapper.find('FormStatus__FormStatusContainer').prop('success')).toBe(false);
 

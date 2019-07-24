@@ -18,8 +18,8 @@ export class AuthedNav extends React.Component {
                 </Link>
                 }
                 <NavDrop id="account" title="Account">
-                    <Link href={Site.routes.account.profile}>
-                        <NavDrop.Item href={Site.routes.account.profile}>
+                    <Link href={Site.routes.account.settings}>
+                        <NavDrop.Item href={Site.routes.account.settings}>
                             Settings
                         </NavDrop.Item>
                     </Link>

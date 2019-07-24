@@ -15,7 +15,7 @@ describe('<AuthedNav/>', () => {
         expect(AccountNav.exists()).toBe(true);
 
         //should have 2 - Next Router Link with sub link
-        const ProfileLink = wrapper.find({href: `${Site.routes.account.profile}`});
+        const ProfileLink = wrapper.find({href: `${Site.routes.account.settings}`});
         expect(ProfileLink.length).toBe(2);
 
         const LogoutLink = wrapper.find({href: `${Site.routes.auth.logout}`});

@@ -11,7 +11,7 @@ export const Site = {
             logout: '/logout',
         },
         account: {
-            profile: '/profile'
+            settings: '/me'
         },
         admin: {
             index: '/admin'
