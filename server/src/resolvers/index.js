@@ -1,5 +1,5 @@
 import { Query as AccountQuery, Mutation as AccountMutation } from '../models/account';
-
+import { User } from '../models/users';
 
 export default {
     Query:{
@@ -7,5 +7,6 @@ export default {
     },
     Mutation: {
         ...AccountMutation
-    }
+    },
+    User: User,
 }

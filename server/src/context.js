@@ -11,7 +11,7 @@ export default async (req, res, db) => {
         },
         permissions: {
             global: {
-                userId: ManyLoader('global_permissions', 'user_id'),
+                userId: ManyLoader(db, 'global_permissions', 'user_id'),
             }
         }
     }

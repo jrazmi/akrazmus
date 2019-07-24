@@ -1,7 +1,4 @@
-type Query {
-    user: User!
-    users: [User]!
-}
+
 
 type User {
     id: ID!
@@ -9,6 +6,7 @@ type User {
     first_name: String
     last_name: String
     deleted: Boolean
+    globalPermissions: [GlobalPermissionEnum]
     createdAt: GraphQLDateTime
     updatedAt: GraphQLDateTime
 }
@@ -16,4 +14,8 @@ type UsersResults {
     hasMore: Boolean!
     totalCount: Int!
     items: [User]!
+}
+
+enum GlobalPermissionEnum {
+    ADMIN
 }

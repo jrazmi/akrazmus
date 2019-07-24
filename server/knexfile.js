@@ -13,6 +13,7 @@ module.exports = {
     }
   },
   development: {
+    debug: true,
     client: "pg",
     connection: process.env.DATABASE_URL,
     migrations: {

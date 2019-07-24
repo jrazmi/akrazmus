@@ -125,6 +125,7 @@ module.exports = {
     }
   },
   development: {
+    debug: true,
     client: "pg",
     connection: process.env.DATABASE_URL,
     migrations: {
@@ -167,7 +168,7 @@ __webpack_require__.r(__webpack_exports__);
     },
     permissions: {
       global: {
-        userId: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["ManyLoader"])('global_permissions', 'user_id')
+        userId: Object(_loaders__WEBPACK_IMPORTED_MODULE_0__["ManyLoader"])(db, 'global_permissions', 'user_id')
       }
     } // load currentuser into context
     // do we want to actually load user or no?
@@ -759,6 +760,48 @@ const updateMe = async (root, args, ctx, info) => {
 
 /***/ }),
 
+/***/ "./src/models/users/index.js":
+/*!***********************************!*\
+  !*** ./src/models/users/index.js ***!
+  \***********************************/
+/*! exports provided: Queries, User */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Queries", function() { return Queries; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "User", function() { return User; });
+/* harmony import */ var _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resolvers/globalPermissions */ "./src/models/users/resolvers/globalPermissions.js");
+
+const Queries = {};
+const User = {
+  globalPermissions: _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__["globalPermissions"]
+};
+
+/***/ }),
+
+/***/ "./src/models/users/resolvers/globalPermissions.js":
+/*!*********************************************************!*\
+  !*** ./src/models/users/resolvers/globalPermissions.js ***!
+  \*********************************************************/
+/*! exports provided: globalPermissions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "globalPermissions", function() { return globalPermissions; });
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "lodash");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+
+const globalPermissions = async (root, args, ctx, info) => {
+  //load all global permissions for root user id
+  const perms = await ctx.loaders.permissions.global.userId.load(root.id); // map result to an array of perm values
+
+  return lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(perms, 'permission');
+};
+
+/***/ }),
+
 /***/ "./src/resolvers/index.js":
 /*!********************************!*\
   !*** ./src/resolvers/index.js ***!
@@ -769,6 +812,7 @@ const updateMe = async (root, args, ctx, info) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _models_account__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../models/account */ "./src/models/account/index.js");
+/* harmony import */ var _models_users__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../models/users */ "./src/models/users/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -776,9 +820,11 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Query"]),
-  Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Mutation"])
+  Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Mutation"]),
+  User: _models_users__WEBPACK_IMPORTED_MODULE_1__["User"]
 });
 
 /***/ }),
