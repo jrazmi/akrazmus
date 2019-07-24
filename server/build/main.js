@@ -125,7 +125,7 @@ module.exports = {
     }
   },
   development: {
-    debug: true,
+    debug: false,
     client: "pg",
     connection: process.env.DATABASE_URL,
     migrations: {
@@ -177,7 +177,9 @@ __webpack_require__.r(__webpack_exports__);
   };
 
   if (req && req.user) {
-    currentUser = await loaders.user.id.load(req.user.id);
+    currentUser = await db('users').where({
+      id: req.user.id
+    }).first();
   }
 
   return {
@@ -764,16 +766,20 @@ const updateMe = async (root, args, ctx, info) => {
 /*!***********************************!*\
   !*** ./src/models/users/index.js ***!
   \***********************************/
-/*! exports provided: Queries, User */
+/*! exports provided: Query, User */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Queries", function() { return Queries; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Query", function() { return Query; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "User", function() { return User; });
 /* harmony import */ var _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resolvers/globalPermissions */ "./src/models/users/resolvers/globalPermissions.js");
+/* harmony import */ var _resolvers_user__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./resolvers/user */ "./src/models/users/resolvers/user.js");
 
-const Queries = {};
+
+const Query = {
+  user: _resolvers_user__WEBPACK_IMPORTED_MODULE_1__["user"]
+};
 const User = {
   globalPermissions: _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__["globalPermissions"]
 };
@@ -802,6 +808,32 @@ const globalPermissions = async (root, args, ctx, info) => {
 
 /***/ }),
 
+/***/ "./src/models/users/resolvers/user.js":
+/*!********************************************!*\
+  !*** ./src/models/users/resolvers/user.js ***!
+  \********************************************/
+/*! exports provided: user */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "user", function() { return user; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
+
+const user = async (root, args, ctx, info) => {
+  let u;
+
+  if (args.id) {
+    u = await ctx.loaders.user.id.load(parseInt(args.id));
+  } else if (args.email) {
+    u = await ctx.loaders.user.email.load(Object(_util__WEBPACK_IMPORTED_MODULE_0__["FormatEmail"])(args.email));
+  }
+
+  return u;
+};
+
+/***/ }),
+
 /***/ "./src/resolvers/index.js":
 /*!********************************!*\
   !*** ./src/resolvers/index.js ***!
@@ -822,7 +854,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Query"]),
+  Query: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Query"], {}, _models_users__WEBPACK_IMPORTED_MODULE_1__["Query"]),
   Mutation: _objectSpread({}, _models_account__WEBPACK_IMPORTED_MODULE_0__["Mutation"]),
   User: _models_users__WEBPACK_IMPORTED_MODULE_1__["User"]
 });

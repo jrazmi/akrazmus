@@ -4,7 +4,7 @@ import { register } from './resolvers/register';
 import { requestPasswordReset } from './resolvers/requestPasswordReset';
 import { resetPassword } from './resolvers/resetPassword';
 import { updateMe } from './resolvers/updateMe';
-import { isAuthenticated, hasGlobalPerm } from '../../middleware/auth/rules';
+import { isAuthenticated } from '../../middleware/auth/rules';
 
 export const Query = {
     me

@@ -20,7 +20,7 @@ export default async (req, res, db) => {
     // do we want to actually load user or no?
     // console.log(req)
     if(req && req.user) {
-        currentUser = await loaders.user.id.load(req.user.id);
+        currentUser = await db('users').where({id:req.user.id}).first();
     }
 
     return {

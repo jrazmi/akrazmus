@@ -1,9 +1,11 @@
 import { Query as AccountQuery, Mutation as AccountMutation } from '../models/account';
-import { User } from '../models/users';
+import { User, Query as UserQuery } from '../models/users';
 
 export default {
     Query:{
-        ...AccountQuery
+        ...AccountQuery,
+        ...UserQuery
+
     },
     Mutation: {
         ...AccountMutation
