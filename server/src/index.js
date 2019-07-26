@@ -31,10 +31,12 @@ server.express.use(jwt({
     }
   }));
 
+
 const options = {
   endpoint: "/graphql",
   subscriptions: "/subscriptions",
   playground: "/playground",
+  port: process.env.PORT || 4000,
   cors: {
     credentials: true,
     origin: process.env.NODE_ENV === 'test' ? '*' : process.env.FRONTEND_HOST
@@ -43,6 +45,7 @@ const options = {
     return {message: err.message}
   }
 }
+
 
 server.start(options, ({port}) => {
   console.log(`Server started, listening on port ${port} for incoming requests.`);

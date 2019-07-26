@@ -1,5 +1,6 @@
 type Query {
     user(id: ID, email: String):User
+    users(input: UsersInput): UsersResults!
 }
 
 type User {
@@ -16,6 +17,24 @@ type UsersResults {
     hasMore: Boolean!
     totalCount: Int!
     items: [User]!
+}
+
+input UsersInput {
+    where: UsersWhere
+    limit: Int
+    offset: Int
+    sort: UserSort
+}
+
+input UsersWhere {
+    OR: [UsersWhere]
+    AND: [UsersWhere]
+    id: StringWhere
+    first_name: StringWhere
+    deleted: BooleanWhere
+}
+input UserSort {
+    id: SortDirection
 }
 
 enum GlobalPermissionEnum {

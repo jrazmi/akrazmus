@@ -249,6 +249,7 @@ const options = {
   endpoint: "/graphql",
   subscriptions: "/subscriptions",
   playground: "/playground",
+  port: process.env.PORT || 4000,
   cors: {
     credentials: true,
     origin:  false ? undefined : process.env.FRONTEND_HOST
@@ -775,10 +776,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "User", function() { return User; });
 /* harmony import */ var _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./resolvers/globalPermissions */ "./src/models/users/resolvers/globalPermissions.js");
 /* harmony import */ var _resolvers_user__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./resolvers/user */ "./src/models/users/resolvers/user.js");
+/* harmony import */ var _resolvers_users__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./resolvers/users */ "./src/models/users/resolvers/users.js");
+
 
 
 const Query = {
-  user: _resolvers_user__WEBPACK_IMPORTED_MODULE_1__["user"]
+  user: _resolvers_user__WEBPACK_IMPORTED_MODULE_1__["user"],
+  users: _resolvers_users__WEBPACK_IMPORTED_MODULE_2__["users"]
 };
 const User = {
   globalPermissions: _resolvers_globalPermissions__WEBPACK_IMPORTED_MODULE_0__["globalPermissions"]
@@ -834,6 +838,31 @@ const user = async (root, args, ctx, info) => {
 
 /***/ }),
 
+/***/ "./src/models/users/resolvers/users.js":
+/*!*********************************************!*\
+  !*** ./src/models/users/resolvers/users.js ***!
+  \*********************************************/
+/*! exports provided: users */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "users", function() { return users; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
+
+const users = async (root, args, ctx, info) => {
+  let query = new _util__WEBPACK_IMPORTED_MODULE_0__["FilterQuery"](ctx.db, 'users', args.input);
+  const items = await query.run();
+  console.log(items);
+  return {
+    hasMore: false,
+    totalCount: 0,
+    items: items
+  };
+};
+
+/***/ }),
+
 /***/ "./src/resolvers/index.js":
 /*!********************************!*\
   !*** ./src/resolvers/index.js ***!
@@ -880,6 +909,224 @@ const typesArray = Object(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__["fi
 const typesMerged = Object(merge_graphql_schemas__WEBPACK_IMPORTED_MODULE_1__["mergeTypes"])(typesArray);
 /* harmony default export */ __webpack_exports__["default"] = (typesMerged);
 /* WEBPACK VAR INJECTION */}.call(this, "src/types"))
+
+/***/ }),
+
+/***/ "./src/util/FilterQuery.js":
+/*!*********************************!*\
+  !*** ./src/util/FilterQuery.js ***!
+  \*********************************/
+/*! exports provided: FilterQuery */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FilterQuery", function() { return FilterQuery; });
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "lodash");
+/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+/* 
+Filter construction based on Jake Lowen's
+https://github.com/jakelowen/sqorn-graphql-filters/blob/master/lib/applyFilters.js
+
+*/
+
+/*
+
+JUST ABOUT THERE NEED QUERY BUILDER TO ACCURATELY CALCULATE OR QUERIES.
+
+
+*/
+
+class FilterQuery {
+  constructor(db, table, input) {
+    _defineProperty(this, "run", async () => {
+      if (this.where) {
+        const prepped = this.prep(this.where);
+        this.query = this.query.where(builder => {
+          return this.build(builder, prepped);
+        });
+      }
+
+      return await this.query.select('*');
+    });
+
+    _defineProperty(this, "prep", (clause, parent = null) => {
+      //map out conditions for query
+      let expressions = [];
+
+      lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(clause, (x, y) => {
+        /*
+        if this clause is not an array and its not nested construct the expression
+        
+        EXAMPLE QUERY:
+        where: {
+            deleted: { eq: false}
+        }
+         EXPECTED expressions:
+        [ { class: 'EXPRESSION',
+            column: 'deleted',
+            operation: 'eq',
+            value: false } 
+        ]
+        */
+        if (!Array.isArray(x) && !parent) {
+          lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
+            expressions.push({
+              class: "EXPRESSION",
+              column: y,
+              operation: k,
+              value: v
+            });
+          });
+        }
+        /*
+        AND/OR clauses should construct a parent expression and recursivly call prep function on nested subclauses
+        
+        EXAMPLE QUERY (AND SINGULAR):
+        input: {
+                where: {
+                    AND: {id: {eq: "1"}
+                }
+            }
+        EXPECTED expressions(AND SINGULAR): 
+        [ { class: 'PARENT',
+            connector: 'AND',
+            operations:
+            [ { class: 'EXPRESSION', column: 'id', operation: 'eq', value: '1' } ] } ]
+        
+        EXAMPE QUERY (OR ARRAY):
+          where: {
+            OR: [
+                {deleted:{eq: false}}
+                {id:{eq: "1"}}
+                ]
+            }
+        EXPECTED expressions (ARRAY):
+            [ { class: 'PARENT',
+                connector: 'OR',
+                operations:
+                [ { class: 'EXPRESSION',
+                    column: 'deleted',
+                    operation: 'eq',
+                    value: false },
+                { class: 'EXPRESSION', column: 'id', operation: 'eq', value: '1' } ] } ]
+         */
+        else if (y === 'AND') {
+            expressions.push({
+              class: "PARENT",
+              connector: "AND",
+              operations: this.prep(x, "AND")
+            });
+          } else if (y === "OR") {
+            expressions.push({
+              class: "PARENT",
+              connector: "OR",
+              operations: this.prep(x, "OR")
+            });
+          } else
+            /* if clause is not a parent and not a root expression
+                map values and recursively call prep function until narrowed to EXPRESSIONS
+            */
+            {
+              lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
+                if (k === "AND" || k === "OR") {
+                  const subOp = this.prep({
+                    [k]: v
+                  }, k);
+                  expressions.push(subOp[0]);
+                } else {
+                  lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v, (x, d) => {
+                    expressions.push({
+                      class: "EXPRESSION",
+                      column: k,
+                      operation: d,
+                      value: x,
+                      parent: parent
+                    });
+                  });
+                }
+              });
+            }
+      });
+
+      return expressions;
+    });
+
+    _defineProperty(this, "build", (builder, expressions) => {
+      let thisBuilder = builder;
+
+      lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(expressions, statement => {
+        switch (statement.class) {
+          case "PARENT":
+            {
+              thisBuilder = builder.andWhere(builder => {
+                return this.build(builder, statement.operations);
+              });
+              break;
+            }
+
+          case "EXPRESSION":
+            {
+              return this.generate(thisBuilder, statement);
+              break;
+            }
+
+          default:
+            {
+              break;
+            }
+        }
+      });
+
+      return thisBuilder;
+    });
+
+    _defineProperty(this, "generate", (builder, statement) => {
+      switch (statement.parent) {
+        case "OR":
+          {
+            return builder.orWhere(statement.column, this.operations(statement.operation), statement.value);
+            break;
+          }
+
+        default:
+          {
+            return builder.andWhere(statement.column, this.operations(statement.operation), statement.value);
+            break;
+          }
+      }
+    });
+
+    _defineProperty(this, "operations", operation => {
+      switch (operation) {
+        case "eq":
+          {
+            return '=';
+          }
+
+        case "neq":
+          {
+            return '!=';
+          }
+
+        default:
+          break;
+      }
+    });
+
+    this.db = db;
+    this.query = this.db(table);
+    this.where = input && input.where ? input.where : null;
+    this.limit = input && input.limit ? input.limit : null;
+    this.sort = input && input.sort ? input.sort : null;
+    this.offset = input && input.offset ? input.offset : null;
+  } // construct the query
+
+
+}
 
 /***/ }),
 
@@ -947,7 +1194,7 @@ const sendEmail = async params => {
 /*!***************************!*\
   !*** ./src/util/index.js ***!
   \***************************/
-/*! exports provided: FormatEmail, prove */
+/*! exports provided: FormatEmail, prove, FilterQuery */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -957,6 +1204,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _Prove__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Prove */ "./src/util/Prove.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "prove", function() { return _Prove__WEBPACK_IMPORTED_MODULE_1__["prove"]; });
+
+/* harmony import */ var _FilterQuery__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./FilterQuery */ "./src/util/FilterQuery.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FilterQuery", function() { return _FilterQuery__WEBPACK_IMPORTED_MODULE_2__["FilterQuery"]; });
+
 
 
 
