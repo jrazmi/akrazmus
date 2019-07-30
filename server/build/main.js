@@ -853,7 +853,6 @@ __webpack_require__.r(__webpack_exports__);
 const users = async (root, args, ctx, info) => {
   let query = new _util__WEBPACK_IMPORTED_MODULE_0__["FilterQuery"](ctx.db, 'users', args.input);
   const items = await query.run();
-  console.log(items);
   return {
     hasMore: false,
     totalCount: 0,
@@ -924,8 +923,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FilterQuery", function() { return FilterQuery; });
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! lodash */ "lodash");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_0__);
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 
 /* 
 Filter construction based on Jake Lowen's
@@ -935,29 +932,40 @@ https://github.com/jakelowen/sqorn-graphql-filters/blob/master/lib/applyFilters.
 
 /*
 
-JUST ABOUT THERE NEED QUERY BUILDER TO ACCURATELY CALCULATE OR QUERIES.
+DEEEPLY NESTED IS NOT WORKING
+THAT SECOND OR ISN't working.
+AND:[
+    OR:{..., {OR: {...}}}
+]
 
 
 */
 
 class FilterQuery {
   constructor(db, table, input) {
-    _defineProperty(this, "run", async () => {
+    this.run = async () => {
       if (this.where) {
-        const prepped = this.prep(this.where);
-        this.query = this.query.where(builder => {
-          return this.build(builder, prepped);
-        });
+        const prepped = this.prep(this.where); // this.query = this.query.where((builder)=>{
+        //     return this.build(builder, prepped);
+        // }
+        // )
+
+        this.query = this.build(this.query, prepped);
       }
 
+      console.log(this.query.toString());
+      return [];
       return await this.query.select('*');
-    });
+    };
 
-    _defineProperty(this, "prep", (clause, parent = null) => {
+    this.prep = (clause, parent = null, isNested = false) => {
       //map out conditions for query
       let expressions = [];
 
       lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(clause, (x, y) => {
+        // console.log(y)
+        // console.log(x);
+
         /*
         if this clause is not an array and its not nested construct the expression
         
@@ -972,7 +980,7 @@ class FilterQuery {
             value: false } 
         ]
         */
-        if (!Array.isArray(x) && !parent) {
+        if (!Array.isArray(x) && !parent && !isNested) {
           lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
             expressions.push({
               class: "EXPRESSION",
@@ -1018,13 +1026,15 @@ class FilterQuery {
             expressions.push({
               class: "PARENT",
               connector: "AND",
-              operations: this.prep(x, "AND")
+              operations: this.prep(x, "AND", true),
+              parent: parent
             });
           } else if (y === "OR") {
             expressions.push({
               class: "PARENT",
               connector: "OR",
-              operations: this.prep(x, "OR")
+              operations: this.prep(x, "OR", true),
+              parent: parent
             });
           } else
             /* if clause is not a parent and not a root expression
@@ -1035,7 +1045,7 @@ class FilterQuery {
                 if (k === "AND" || k === "OR") {
                   const subOp = this.prep({
                     [k]: v
-                  }, k);
+                  }, k, true);
                   expressions.push(subOp[0]);
                 } else {
                   lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v, (x, d) => {
@@ -1053,18 +1063,21 @@ class FilterQuery {
       });
 
       return expressions;
-    });
+    };
 
-    _defineProperty(this, "build", (builder, expressions) => {
+    this.build = (builder, expressions) => {
       let thisBuilder = builder;
 
       lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(expressions, statement => {
         switch (statement.class) {
           case "PARENT":
             {
-              thisBuilder = builder.andWhere(builder => {
-                return this.build(builder, statement.operations);
-              });
+              if (false) {} else {
+                thisBuilder = builder.where(builder => {
+                  return this.build(builder, statement.operations);
+                });
+              }
+
               break;
             }
 
@@ -1082,40 +1095,112 @@ class FilterQuery {
       });
 
       return thisBuilder;
-    });
+    };
 
-    _defineProperty(this, "generate", (builder, statement) => {
+    this.generate = (builder, statement) => {
       switch (statement.parent) {
         case "OR":
           {
-            return builder.orWhere(statement.column, this.operations(statement.operation), statement.value);
+            console.log(statement);
+            return builder.orWhere(innerBuilder => {
+              return this.operations(innerBuilder, statement);
+            });
             break;
           }
 
         default:
           {
-            return builder.andWhere(statement.column, this.operations(statement.operation), statement.value);
-            break;
+            return builder.andWhere(innerBuilder => {
+              return this.operations(innerBuilder, statement);
+            });
           }
+        // case "OR": {
+        //     return builder.orWhere(statement.column, this.operations(statement.operation), statement.value);
+        //     break;
+        // }
+        // default: {
+        //     return builder.andWhere(statement.column, this.operations(statement.operation), statement.value);
+        //     break;
+        // }
       }
-    });
+    };
 
-    _defineProperty(this, "operations", operation => {
-      switch (operation) {
-        case "eq":
+    this.operations = (innerBuilder, statement) => {
+      switch (statement.operation) {
+        case 'eq':
           {
-            return '=';
+            return innerBuilder.where(statement.column, '=', statement.value);
           }
 
-        case "neq":
+        case 'neq':
           {
-            return '!=';
+            return innerBuilder.where(statement.column, '!=', statement.value);
+          }
+
+        case 'in':
+          {
+            return innerBuilder.whereIn(statement.column, statement.value);
+          }
+
+        case 'notIn':
+          {
+            return innerBuilder.whereNotIn(statement.column, statement.value);
+          }
+
+        case 'lt':
+          {
+            return innerBuilder.where(statement.column, '<', statement.value);
+          }
+
+        case 'lte':
+          {
+            return innerBuilder.where(statement.column, '<=', statement.value);
+          }
+
+        case 'gt':
+          {
+            return innerBuilder.where(statement.column, '>', statement.value);
+          }
+
+        case 'gte':
+          {
+            return innerBuilder.where(statement.column, '>=', statement.value);
+          }
+
+        case 'contains':
+          {
+            return innerBuilder.where(statement.column, 'ilike', `%${statement.value}%`);
+          }
+
+        case 'notContains':
+          {
+            return innerBuilder.whereNot(statement.column, 'ilike', `%${statement.value}%`);
+          }
+
+        case 'startsWith':
+          {
+            return innerBuilder.where(statement.column, 'ilike', `${statement.value}%`);
+          }
+
+        case 'notStartsWith':
+          {
+            return innerBuilder.whereNot(statement.column, 'ilike', `${statement.value}%`);
+          }
+
+        case 'endsWith':
+          {
+            return innerBuilder.where(statement.column, 'ilike', `%${statement.value}`);
+          }
+
+        case 'notEndsWith':
+          {
+            return innerBuilder.whereNot(statement.column, 'ilike', `%${statement.value}`);
           }
 
         default:
           break;
       }
-    });
+    };
 
     this.db = db;
     this.query = this.db(table);
@@ -1124,6 +1209,18 @@ class FilterQuery {
     this.sort = input && input.sort ? input.sort : null;
     this.offset = input && input.offset ? input.offset : null;
   } // construct the query
+  // operations = (operation) => {
+  //     switch(operation){
+  //         case "eq": {
+  //             return '='
+  //         }
+  //         case "neq": {
+  //             return '!='
+  //         }
+  //         default:
+  //             break;
+  //     }
+  // }
 
 
 }

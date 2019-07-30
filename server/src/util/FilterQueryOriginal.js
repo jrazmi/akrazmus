@@ -30,15 +30,12 @@ export class FilterQuery {
     run = async () =>{
         if(this.where){
             const prepped = this.prep(this.where);
-            // this.query = this.query.where((builder)=>{
-            //     return this.build(builder, prepped);
-            // }
-            // )
-            this.query = this.build(this.query, prepped);
+            this.query = this.query.where((builder)=>{
+                return this.build(builder, prepped);
+            }
+            )
 
         }
-        console.log(this.query.toString())
-        return []
         return await this.query.select('*')
     }
 
@@ -116,7 +113,7 @@ export class FilterQuery {
                 expressions.push({
                     class: "PARENT",
                     connector: "AND",
-                    operations: this.prep(x, "AND", true),
+                    operations: this.prep(x, parent, true),
                     parent: parent,
                 })
             } 
@@ -124,7 +121,7 @@ export class FilterQuery {
                 expressions.push({
                     class: "PARENT",
                     connector: "OR",
-                    operations: this.prep(x, "OR", true),
+                    operations: this.prep(x, parent, true),
                     parent: parent
                 })
             } else 
@@ -136,8 +133,8 @@ export class FilterQuery {
             {
                 _.map(x, (v, k) => {
                     if( k === "AND" || k === "OR") {
-                        
-                        const subOp = this.prep({ [k]: v}, k, true);
+                    
+                        const subOp = this.prep({ [k]: v}, k);
                         expressions.push(subOp[0]);
                     } else {
                         _.map(v, (x, d) => {
@@ -165,20 +162,10 @@ export class FilterQuery {
             
             switch(statement.class){
                 case "PARENT": {
-                       
-                        if(false && statement.connector === "OR" && statement.parent === "OR"){
-                            console.log('\n\n')
-                            console.log("STATEMENT:", JSON.stringify(statement, null, 2));
-                            console.log('\n\n')
-
-                            thisBuilder = builder.orWhere((builder) => {
-                                return this.build(builder, statement.operations)
-                            })
-                        } else {
+                      
                             thisBuilder = builder.where((builder) => {
                                 return this.build(builder, statement.operations)
                             })
-                        }
 
                     break;
                 }
@@ -200,7 +187,7 @@ export class FilterQuery {
     
         switch(statement.parent){
             case "OR": {
-                console.log(statement)
+                // console.log(statement)
                 return builder.orWhere((innerBuilder)=> { 
                     return this.operations(innerBuilder, statement);
                 });

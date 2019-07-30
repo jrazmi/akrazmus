@@ -4,7 +4,7 @@ import { users } from './resolvers/users';
 
 export const Query = {
     user,
-    users
+    users,
 }
 
 
