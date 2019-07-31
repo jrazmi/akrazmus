@@ -18,15 +18,26 @@ export class FilterQuery {
     }
 
     // construct the query
-    run = async () =>{
+    build = () =>{
         if(this.where){
-
             const prepped = this.prep(this.where);
-            this.query = this.build(this.query, prepped);
-            console.log(this.query.toString())
-            // console.log(JSON.stringify(prepped, null, 2));
+            this.query = this.compose(this.query, prepped);
         }
-        return await this.query.select('*')
+        const limit = this.limit ? this.limit : 20;
+        const offset = this.offset ? this.offset : 0;
+
+        if(this.sort){
+            _.map(this.sort, (order, column) => {
+                this.query = this.query.orderBy(
+                    column, order.toLowerCase()
+                )
+            })
+        }
+
+        this.query = this.query.limit(limit + 1);
+        this.query = this.query.offset(offset);
+
+        return this.query
     }
 
     prep = (statement, parent=null) => {
@@ -71,7 +82,7 @@ export class FilterQuery {
         return expressions
     }
 
-    build = (builder, expressions) => {
+    compose = (builder, expressions) => {
         _.map(expressions, statement => {
      
             switch(statement.class){
@@ -79,25 +90,25 @@ export class FilterQuery {
                     switch(statement.parent){
                         case "OR": {
                             builder = builder.orWhere((sb) => {
-                                return this.build(sb, statement.operations)
+                                return this.compose(sb, statement.operations)
                             });
                             break;
                         } 
                         case "AND": {
                             builder = builder.andWhere((sb) => {
-                                return this.build(sb, statement.operations);
+                                return this.compose(sb, statement.operations);
                             })
                             break;
                         }
                         default: {
                             if(statement.connector === "OR"){
                                 builder = builder.orWhere((sb) => {
-                                    return this.build(sb, statement.operations)
+                                    return this.compose(sb, statement.operations)
                                 });
                                 break;
                             } else {
                                 builder = builder.andWhere((sb) => {
-                                    return this.build(sb, statement.operations);
+                                    return this.compose(sb, statement.operations);
                                 })
                                 break;
                             }

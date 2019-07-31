@@ -272,13 +272,14 @@ server.start(options, ({
 /*!******************************!*\
   !*** ./src/loaders/index.js ***!
   \******************************/
-/*! exports provided: SingleLoader, ManyLoader */
+/*! exports provided: SingleLoader, ManyLoader, FilterLoader */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SingleLoader", function() { return SingleLoader; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ManyLoader", function() { return ManyLoader; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FilterLoader", function() { return FilterLoader; });
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dataloader */ "dataloader");
 /* harmony import */ var dataloader__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dataloader__WEBPACK_IMPORTED_MODULE_0__);
 
@@ -293,6 +294,13 @@ const ManyLoader = (db, table, key) => new dataloader__WEBPACK_IMPORTED_MODULE_0
   return db.table(table).whereIn(key, keys).select().then(rows => {
     return keys.map(ikey => {
       return rows.filter(x => x[key] === ikey);
+    });
+  });
+});
+const FilterLoader = query => new dataloader__WEBPACK_IMPORTED_MODULE_0___default.a(keys => {
+  query.then(rows => {
+    return keys.map(id => {
+      return rows.filter(x => x.id === id);
     });
   });
 });
@@ -852,7 +860,9 @@ __webpack_require__.r(__webpack_exports__);
 
 const users = async (root, args, ctx, info) => {
   let query = new _util__WEBPACK_IMPORTED_MODULE_0__["FilterQuery"](ctx.db, 'users', args.input);
-  const items = await query.run();
+  const build = query.build();
+  console.log(build.toString());
+  const items = await build;
   return {
     hasMore: false,
     totalCount: 0,
@@ -932,14 +942,24 @@ https://github.com/jakelowen/sqorn-graphql-filters/blob/master/lib/applyFilters.
 
 class FilterQuery {
   constructor(db, table, input) {
-    this.run = async () => {
+    this.build = () => {
       if (this.where) {
         const prepped = this.prep(this.where);
-        this.query = this.build(this.query, prepped);
-        console.log(this.query.toString()); // console.log(JSON.stringify(prepped, null, 2));
+        this.query = this.compose(this.query, prepped);
       }
 
-      return await this.query.select('*');
+      const limit = this.limit ? this.limit : 20;
+      const offset = this.offset ? this.offset : 0;
+
+      if (this.sort) {
+        lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(this.sort, (order, column) => {
+          this.query = this.query.orderBy(column, order.toLowerCase());
+        });
+      }
+
+      this.query = this.query.limit(limit + 1);
+      this.query = this.query.offset(offset);
+      return this.query;
     };
 
     this.prep = (statement, parent = null) => {
@@ -985,7 +1005,7 @@ class FilterQuery {
       return expressions;
     };
 
-    this.build = (builder, expressions) => {
+    this.compose = (builder, expressions) => {
       lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(expressions, statement => {
         switch (statement.class) {
           case "PARENT":
@@ -994,7 +1014,7 @@ class FilterQuery {
                 case "OR":
                   {
                     builder = builder.orWhere(sb => {
-                      return this.build(sb, statement.operations);
+                      return this.compose(sb, statement.operations);
                     });
                     break;
                   }
@@ -1002,7 +1022,7 @@ class FilterQuery {
                 case "AND":
                   {
                     builder = builder.andWhere(sb => {
-                      return this.build(sb, statement.operations);
+                      return this.compose(sb, statement.operations);
                     });
                     break;
                   }
@@ -1011,12 +1031,12 @@ class FilterQuery {
                   {
                     if (statement.connector === "OR") {
                       builder = builder.orWhere(sb => {
-                        return this.build(sb, statement.operations);
+                        return this.compose(sb, statement.operations);
                       });
                       break;
                     } else {
                       builder = builder.andWhere(sb => {
-                        return this.build(sb, statement.operations);
+                        return this.compose(sb, statement.operations);
                       });
                       break;
                     }

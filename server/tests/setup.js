@@ -40,7 +40,9 @@ export const makeTestContext = async (contextOverRides) => {
 
 export const mockCall = async (query, variables, contextOverRides) => {
     const testContext = await makeTestContext(contextOverRides);
+    console.log(variables);
     // pass in schema, query, root, context, variables
     const gqls = await graphql(schemaWithMiddleware, query, {}, testContext, variables);
+    console.log(gqls)
     return gqls;
 }

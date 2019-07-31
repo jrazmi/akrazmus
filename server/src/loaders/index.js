@@ -37,3 +37,18 @@ export const ManyLoader = (db, table, key) => new DataLoader(
         )
     }
 )
+
+export const FilterLoader = (query) => new DataLoader(
+    (keys) => {
+        query
+        .then(rows => {
+            return(
+                keys.map(id => {
+                    return(
+                        rows.filter(x=>x.id === id)
+                    )
+                })
+            )
+        }) 
+    }
+)
