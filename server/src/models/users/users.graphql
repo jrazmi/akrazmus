@@ -19,8 +19,9 @@ type UsersResults {
     items: [User]!
 }
 
+
 input UsersInput {
-    where: UsersWhere
+    where: [UsersWhere]
     limit: Int
     offset: Int
     sort: UserSort

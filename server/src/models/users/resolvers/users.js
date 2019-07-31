@@ -1,5 +1,4 @@
-import { FilterQuery } from "../../../util";
-
+import { FilterQuery } from '../../../util';
 
 export const users = async (root, args, ctx, info) => {
     let query = new FilterQuery(ctx.db, 'users', args.input);

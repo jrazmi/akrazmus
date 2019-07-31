@@ -930,199 +930,123 @@ https://github.com/jakelowen/sqorn-graphql-filters/blob/master/lib/applyFilters.
 
 */
 
-/*
-
-DEEEPLY NESTED IS NOT WORKING
-THAT SECOND OR ISN't working.
-AND:[
-    OR:{..., {OR: {...}}}
-]
-
-
-*/
-
 class FilterQuery {
   constructor(db, table, input) {
     this.run = async () => {
       if (this.where) {
-        const prepped = this.prep(this.where); // this.query = this.query.where((builder)=>{
-        //     return this.build(builder, prepped);
-        // }
-        // )
-
+        const prepped = this.prep(this.where);
         this.query = this.build(this.query, prepped);
+        console.log(this.query.toString()); // console.log(JSON.stringify(prepped, null, 2));
       }
 
-      console.log(this.query.toString());
-      return [];
       return await this.query.select('*');
     };
 
-    this.prep = (clause, parent = null, isNested = false) => {
-      //map out conditions for query
-      let expressions = [];
+    this.prep = (statement, parent = null) => {
+      const expressions = [];
 
-      lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(clause, (x, y) => {
-        // console.log(y)
-        // console.log(x);
-
-        /*
-        if this clause is not an array and its not nested construct the expression
-        
-        EXAMPLE QUERY:
-        where: {
-            deleted: { eq: false}
-        }
-         EXPECTED expressions:
-        [ { class: 'EXPRESSION',
-            column: 'deleted',
-            operation: 'eq',
-            value: false } 
-        ]
-        */
-        if (!Array.isArray(x) && !parent && !isNested) {
-          lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
-            expressions.push({
-              class: "EXPRESSION",
-              column: y,
-              operation: k,
-              value: v
-            });
+      lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(statement, (x, y) => {
+        if (y === "OR") {
+          expressions.push({
+            class: "PARENT",
+            connector: "OR",
+            parent: parent,
+            operations: this.prep(x, "OR")
           });
-        }
-        /*
-        AND/OR clauses should construct a parent expression and recursivly call prep function on nested subclauses
-        
-        EXAMPLE QUERY (AND SINGULAR):
-        input: {
-                where: {
-                    AND: {id: {eq: "1"}
-                }
-            }
-        EXPECTED expressions(AND SINGULAR): 
-        [ { class: 'PARENT',
-            connector: 'AND',
-            operations:
-            [ { class: 'EXPRESSION', column: 'id', operation: 'eq', value: '1' } ] } ]
-        
-        EXAMPE QUERY (OR ARRAY):
-          where: {
-            OR: [
-                {deleted:{eq: false}}
-                {id:{eq: "1"}}
-                ]
-            }
-        EXPECTED expressions (ARRAY):
-            [ { class: 'PARENT',
-                connector: 'OR',
-                operations:
-                [ { class: 'EXPRESSION',
-                    column: 'deleted',
-                    operation: 'eq',
-                    value: false },
-                { class: 'EXPRESSION', column: 'id', operation: 'eq', value: '1' } ] } ]
-         */
-        else if (y === 'AND') {
-            expressions.push({
-              class: "PARENT",
-              connector: "AND",
-              operations: this.prep(x, "AND", true),
-              parent: parent
-            });
-          } else if (y === "OR") {
-            expressions.push({
-              class: "PARENT",
-              connector: "OR",
-              operations: this.prep(x, "OR", true),
-              parent: parent
-            });
-          } else
-            /* if clause is not a parent and not a root expression
-                map values and recursively call prep function until narrowed to EXPRESSIONS
-            */
-            {
-              lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
-                if (k === "AND" || k === "OR") {
-                  const subOp = this.prep({
-                    [k]: v
-                  }, k, true);
-                  expressions.push(subOp[0]);
-                } else {
-                  lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v, (x, d) => {
-                    expressions.push({
-                      class: "EXPRESSION",
-                      column: k,
-                      operation: d,
-                      value: x,
-                      parent: parent
-                    });
-                  });
-                }
+        } else if (y === "AND") {
+          expressions.push({
+            class: "PARENT",
+            connector: "AND",
+            parent: parent,
+            operations: this.prep(x, "AND")
+          });
+        } else {
+          lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(x, (v, k) => {
+            if (k === "AND" || k === "OR") {
+              const subOption = this.prep({
+                [k]: v
+              }, parent);
+              expressions.push(subOption[0]);
+            } else {
+              lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(v, (x, d) => {
+                expressions.push({
+                  class: "EXPRESSION",
+                  column: k,
+                  operation: d,
+                  value: x,
+                  parent: parent
+                });
               });
             }
+          });
+        }
       });
 
       return expressions;
     };
 
     this.build = (builder, expressions) => {
-      let thisBuilder = builder;
-
       lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(expressions, statement => {
         switch (statement.class) {
           case "PARENT":
             {
-              if (false) {} else {
-                thisBuilder = builder.where(builder => {
-                  return this.build(builder, statement.operations);
-                });
-              }
+              switch (statement.parent) {
+                case "OR":
+                  {
+                    builder = builder.orWhere(sb => {
+                      return this.build(sb, statement.operations);
+                    });
+                    break;
+                  }
 
-              break;
+                case "AND":
+                  {
+                    builder = builder.andWhere(sb => {
+                      return this.build(sb, statement.operations);
+                    });
+                    break;
+                  }
+
+                default:
+                  {
+                    if (statement.connector === "OR") {
+                      builder = builder.orWhere(sb => {
+                        return this.build(sb, statement.operations);
+                      });
+                      break;
+                    } else {
+                      builder = builder.andWhere(sb => {
+                        return this.build(sb, statement.operations);
+                      });
+                      break;
+                    }
+                  }
+              }
             }
 
           case "EXPRESSION":
             {
-              return this.generate(thisBuilder, statement);
-              break;
-            }
+              switch (statement.parent) {
+                case "OR":
+                  {
+                    builder = builder.orWhere(sb => {
+                      return this.operations(sb, statement);
+                    });
+                    break;
+                  }
 
-          default:
-            {
-              break;
+                default:
+                  {
+                    builder = builder.andWhere(sb => {
+                      return this.operations(sb, statement);
+                    });
+                  }
+              }
             }
         }
       });
 
-      return thisBuilder;
-    };
-
-    this.generate = (builder, statement) => {
-      switch (statement.parent) {
-        case "OR":
-          {
-            console.log(statement);
-            return builder.orWhere(innerBuilder => {
-              return this.operations(innerBuilder, statement);
-            });
-            break;
-          }
-
-        default:
-          {
-            return builder.andWhere(innerBuilder => {
-              return this.operations(innerBuilder, statement);
-            });
-          }
-        // case "OR": {
-        //     return builder.orWhere(statement.column, this.operations(statement.operation), statement.value);
-        //     break;
-        // }
-        // default: {
-        //     return builder.andWhere(statement.column, this.operations(statement.operation), statement.value);
-        //     break;
-        // }
-      }
+      return builder;
     };
 
     this.operations = (innerBuilder, statement) => {
@@ -1209,18 +1133,6 @@ class FilterQuery {
     this.sort = input && input.sort ? input.sort : null;
     this.offset = input && input.offset ? input.offset : null;
   } // construct the query
-  // operations = (operation) => {
-  //     switch(operation){
-  //         case "eq": {
-  //             return '='
-  //         }
-  //         case "neq": {
-  //             return '!='
-  //         }
-  //         default:
-  //             break;
-  //     }
-  // }
 
 
 }
