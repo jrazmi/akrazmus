@@ -56,6 +56,7 @@ describe("FilterQuery", () => {
         const response = await ctx.mockCall(USERS_QUERY, 
             {input: {where: {first_name: {contains: "b"}}}}
         )
+        expect(response.data.users.items.length).toBe(2);
         // console.log(JSON.stringify(response.data, null, 2));
     })
 })

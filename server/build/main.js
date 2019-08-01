@@ -859,13 +859,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../util */ "./src/util/index.js");
 
 const users = async (root, args, ctx, info) => {
-  let query = new _util__WEBPACK_IMPORTED_MODULE_0__["FilterQuery"](ctx.db, 'users', args.input);
-  const build = query.build();
-  console.log(build.toString());
-  const items = await build;
+  const filtered = new _util__WEBPACK_IMPORTED_MODULE_0__["FilterQuery"](ctx.db, 'users', args.input);
+  const build = await filtered.build();
+  const count = await build.totalCount.returning("count");
+  const items = await build.query;
   return {
-    hasMore: false,
-    totalCount: 0,
+    hasMore: items.length === filtered.limit + 1,
+    totalCount: count[0].count || 0,
     items: items
   };
 };
@@ -942,14 +942,13 @@ https://github.com/jakelowen/sqorn-graphql-filters/blob/master/lib/applyFilters.
 
 class FilterQuery {
   constructor(db, table, input) {
-    this.build = () => {
+    this.build = async () => {
       if (this.where) {
         const prepped = this.prep(this.where);
         this.query = this.compose(this.query, prepped);
       }
 
-      const limit = this.limit ? this.limit : 20;
-      const offset = this.offset ? this.offset : 0;
+      const totalCount = this.query.clone().count('*');
 
       if (this.sort) {
         lodash__WEBPACK_IMPORTED_MODULE_0___default.a.map(this.sort, (order, column) => {
@@ -957,9 +956,14 @@ class FilterQuery {
         });
       }
 
+      const limit = this.limit ? this.limit : 20;
+      const offset = this.offset ? this.offset : 0;
       this.query = this.query.limit(limit + 1);
       this.query = this.query.offset(offset);
-      return this.query;
+      return {
+        query: this.query,
+        totalCount: totalCount
+      };
     };
 
     this.prep = (statement, parent = null) => {

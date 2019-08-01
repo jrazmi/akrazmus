@@ -15,29 +15,34 @@ export class FilterQuery {
         this.limit = input && input.limit ? input.limit : null;
         this.sort = input && input.sort ? input.sort : null;
         this.offset = input && input.offset ? input.offset : null;
+        
     }
 
     // construct the query
-    build = () =>{
+    build = async () =>{
         if(this.where){
             const prepped = this.prep(this.where);
             this.query = this.compose(this.query, prepped);
         }
-        const limit = this.limit ? this.limit : 20;
-        const offset = this.offset ? this.offset : 0;
 
+        const totalCount = this.query.clone().count('*');
+
+        
         if(this.sort){
             _.map(this.sort, (order, column) => {
                 this.query = this.query.orderBy(
                     column, order.toLowerCase()
-                )
-            })
-        }
+                    )
+                })
+            }
+            
+        const limit = this.limit ? this.limit : 20;
+        const offset = this.offset ? this.offset : 0;
 
         this.query = this.query.limit(limit + 1);
         this.query = this.query.offset(offset);
 
-        return this.query
+        return {query: this.query, totalCount: totalCount}
     }
 
     prep = (statement, parent=null) => {

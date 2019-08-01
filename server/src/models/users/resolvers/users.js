@@ -1,14 +1,13 @@
 import { FilterQuery } from '../../../util';
 
 export const users = async (root, args, ctx, info) => {
-    let query = new FilterQuery(ctx.db, 'users', args.input);
-
-    const build = query.build();
-    console.log(build.toString())
-    const items = await build
+    const filtered = new FilterQuery(ctx.db, 'users', args.input);
+    const build = await filtered.build();
+    const count  = await build.totalCount.returning("count");
+    const items = await build.query;
     return {
-        hasMore: false,
-        totalCount: 0,
+        hasMore: items.length === filtered.limit + 1,
+        totalCount: count[0].count || 0,
         items: items
     }
 }
