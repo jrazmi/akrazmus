@@ -1,5 +1,4 @@
 import { createGlobalStyle, css} from 'styled-components';
-
 export const theme = {
     fonts: {
         title: "'Montserrat', Helvetica, sans-serif",

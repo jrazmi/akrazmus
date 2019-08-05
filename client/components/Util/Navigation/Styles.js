@@ -61,3 +61,38 @@ export const NavDrop = styled(NavDropdown)`
     }
     }
 `
+export const SideNavbar = styled(Navbar)`
+.navbar-toggler {
+    color: ${props => props.theme.colors.white};
+    text-transform: uppercase;
+    border: none;
+    font-size: 1rem;
+    font-weight: normal;
+
+
+    svg,i {
+        margin-top: -4px;
+    }
+}
+`;
+
+export const SideNav = styled(Nav)`
+@media (min-width: 768px){
+    padding-top: 40px;
+}
+.nav-link {
+    text-transform: uppercase;
+    -webkit-transition: .25s ease-in-out;
+    -moz-transition: .25s ease-in-out;
+    -o-transition: .25s ease-in-out;
+    transition: .25s ease-in-out;
+    color: ${props => props.theme.colors.white} !important;
+    &:hover,
+    &:focus,
+    &:active {
+        color: ${props => props.theme.colors.primary} !important;
+        cursor: pointer;
+    }
+
+}
+`;

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Container, Row, Col } from './Util';
 import styled from 'styled-components';
-import { MainNavigation } from './Util/Navigation';
+import { MainNavigation, SideNavigation } from './Util/Navigation';
 
 export const PageBody = styled('div')``;
 export const PageHeader = styled('header')``;
@@ -26,13 +26,23 @@ export default class Page extends React.Component {
             </PageHeader>
 
             <PageMain>
-                <Container>
-                    <Row>
-                        <Col>
-                            {this.props.children}
-                        </Col>
-                    </Row>
-                </Container>
+                {
+                    this.props.SideNav ?
+                    <Container bsPrefix="container-fluid h-100 no-gutters px-0">
+                        <Row bsPrefix="row h-100 no-gutters">
+                            <Col xs={12} md={3} xl={2}>
+                                <SideNavigation Component={this.props.SideNav}/>
+                            </Col> 
+                            <Col xs={12} md={9} xl={10}>
+                                {this.props.children}
+                            </Col>
+                        </Row>
+                    </Container>
+                    :
+                    <React.Fragment>
+                        {this.props.children}
+                    </React.Fragment>
+                }
             </PageMain>
 
             <PageFooter>

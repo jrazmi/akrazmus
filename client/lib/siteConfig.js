@@ -14,7 +14,12 @@ export const Site = {
             settings: '/me'
         },
         admin: {
-            index: '/admin'
+            index: '/admin',
+            users: {
+                index: '/admin/users',
+                create: '/admin/users/create',
+                detail: '/admin/users/detail'
+            }
         }
     }
 }

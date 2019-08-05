@@ -8,6 +8,7 @@ export const CURRENT_USER_QUERY = gql`
             email
             first_name
             last_name
+            globalPermissions
         }
     }
 `;
