@@ -1,4 +1,5 @@
 export { TextField } from './TextField';
+export { SelectField } from './SelectField';
 export { SearchTextField } from './SearchTextField';
 export { FormError } from './FormError';
 export { FormStatus } from './FormStatus';

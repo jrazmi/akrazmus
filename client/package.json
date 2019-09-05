@@ -28,6 +28,7 @@
     "lodash": "^4.17.14",
     "next": "^9.0.2",
     "nookies": "^2.0.8",
+    "polished": "^3.4.1",
     "prop-types": "^15.6.1",
     "react": "^16.8.6",
     "react-apollo": "^2.5.8",

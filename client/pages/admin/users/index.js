@@ -13,6 +13,7 @@ import { Site } from '../../../lib/siteConfig';
 import { LoadingBar } from '../../../components/Util/Status';
 import { FilterForm } from '../../../components/Util/Filters';
 import { UserPlus } from 'styled-icons/fa-solid/UserPlus';
+import { UsersWhere, UsersSort } from '../../../lib/filters';
 
 export const GET_USERS_ADMIN_QUERY = gql`
     query users($input: UsersInput){
@@ -32,7 +33,7 @@ export const GET_USERS_ADMIN_QUERY = gql`
 class AdminUsersIndex extends React.Component {
     render(){
         let currentUser = CurrentUser(this.props);
-        let currentQuery = new CurrentQuery(this.props)
+        let currentQuery = CurrentQuery(this.props);
         return(
             <Page
                 currentUser={currentUser}
@@ -72,7 +73,12 @@ class AdminUsersIndex extends React.Component {
                                                 </Row>
                                                 <LoadingBar loading={loading ? 1 : 0}/>
                                                         
-                                                <FilterForm />
+                                                <FilterForm 
+                                                    currentQuery={currentQuery}
+                                                    path={Site.routes.admin.users.index}
+                                                    filters={UsersWhere}
+                                                    sort={UsersSort}
+                                                />
                                                             
                                            
 

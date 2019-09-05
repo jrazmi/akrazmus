@@ -5,6 +5,8 @@ export const InputContainer = styled('div')`
     width: 100%;
     padding-bottom:.5rem;;
     margin-bottom: 1rem;
+    ${({labelBelow}) => labelBelow && `margin-bottom: 0rem;`}; 
+
 `;
 export const SearchInputContainer = styled('div')`
     display: block;
@@ -18,6 +20,7 @@ export const Label = styled('label')`
     text-transform: uppercase;
     font-size: .75rem;
     padding-left: .5rem;
+    
 `;
 
 export const TextInput = styled('input')`
@@ -46,6 +49,7 @@ export const ErrorContainer = styled('div')`
     font-size: .75rem;
     padding-left: .5rem;
     color: ${props => props.theme.colors.error};
+    ${({labelBelow}) => labelBelow && `margin-top: -.8rem;`}; 
 `;
 
 export const StyledSelectInput = styled('select')`
