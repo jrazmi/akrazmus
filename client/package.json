@@ -23,7 +23,7 @@
     "express": "^4.17.1",
     "formik": "^1.5.8",
     "graphql": "14.0.2",
-    "https-proxy-agent": "^2.2.1",
+    "https-proxy-agent": "^2.2.3",
     "isomorphic-unfetch": "^2.0.0",
     "lodash": "^4.17.14",
     "next": "^9.0.2",
